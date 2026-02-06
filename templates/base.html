@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title | default('Financial Tracker') }}{% endblock %}</title>
+    <style>
+        /* Base styles - applies to all pages
+           Why: Consistent look and feel across the application
+           Removes browser default margins/padding for predictable layout
+        */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        /* Header - navigation bar at top
+           Why: gradient background makes it visually distinct from content
+           box-shadow gives subtle depth
+        */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Main content container
+           Why: max-width keeps text readable (not too wide on large monitors)
+           auto margins center the content
+        */
+        main {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* Form styles - used in add/edit pages
+           Why: white background on gray page makes form stand out
+           padding creates space inside the form container
+        */
+        form {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+        
+        form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        form input,
+        form select,
+        form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        form input:focus,
+        form select:focus,
+        form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        /* Buttons - submit, cancel, etc.
+           Why: different colors indicate different actions
+           - purple for primary actions (submit)
+           - gray for secondary (cancel)
+           - red for destructive (delete)
+        */
+        button,
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            margin-right: 0.5rem;
+        }
+        
+        button[type="submit"],
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        button[type="submit"]:hover,
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102,126,234,0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        /* Table styles - for listing transactions/categories
+           Why: structured data is easier to read in rows/columns
+           hover effect helps user track which row they're looking at
+        */
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: #667eea;
+            color: white;
+        }
+        
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+        }
+        
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        tbody tr:hover {
+            background: #e9ecef;
+        }
+        
+        td a {
+            margin-right: 1rem;
+            text-decoration: none;
+            color: #667eea;
+        }
+        
+        td a:hover {
+            text-decoration: underline;
+        }
+        
+        td a[href*="delete"] {
+            color: #dc3545;
+        }
+        
+        /* Flash messages - feedback for user actions
+           Why: green for success, red for errors
+           stands out from normal content
+        */
+        .flashes {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+        
+        .flashes li {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .flashes li.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        
+        h2 {
+            color: #555;
+            margin: 1.5rem 0 1rem;
+            font-size: 1.5rem;
+        }
+        
+        /* Responsive - adjusts for mobile devices
+           Why: smaller screens need vertical nav, smaller text
+        */
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Financial Tracker</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/transaction">Transactions</a>
+            <a href="/category">Categories</a>
+        </nav>
+    </header>
+    <main>
+        {% block content %}
+        <p>Welcome. Add transactions and categories in Phase 2.</p>
+        {% endblock %}
+    </main>
+</body>
+</html>

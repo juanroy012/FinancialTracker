@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or "Edit Transaction" }}{% endblock %}
+
+{% block content %}
+<h1>{{ title or "Edit Transaction" }} #{{ transaction.id or transaction['id'] }}</h1>
+
+{% if messages %}
+  <ul class="flashes">
+    {% for msg in messages %}
+      <li class="error">{{ msg }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<div id="form-message" class="form-message" aria-live="polite"></div>
+
+{# Edit form - pre-filled with existing transaction data
+   Why form_data: If validation fails, show user's attempted values
+   Why transaction: If first load, show current database values
+#}
+<form id="transaction-edit-form" data-transaction-id="{{ transaction.id or transaction['id'] }}" method="post" action="/transaction/{{ transaction.id or transaction['id'] }}">
+  <label for="type">Type *</label>
+  <select id="type" name="type" required>
+    <option value="">Select Type</option>
+    <option value="income" {% if (form_data.type if form_data else (transaction.type or transaction['type'])) == 'income' %}selected{% endif %}>💰 Income</option>
+    <option value="expense" {% if (form_data.type if form_data else (transaction.type or transaction['type'])) == 'expense' %}selected{% endif %}>💸 Expense</option>
+  </select>
+
+  <label for="amount_cents">Amount (in cents) *
+    <small>Current: ${{ "%0.2f"|format((transaction.amount_cents or transaction['amount_cents']) / 100) }}</small>
+  </label>
+  <input 
+    id="amount_cents" 
+    name="amount_cents" 
+    type="number" 
+    min="0" 
+    step="1"
+    value="{{ form_data.amount_cents if form_data else (transaction.amount_cents or transaction['amount_cents']) }}" 
+    required>
+
+  <label for="date">Date *</label>
+  <input 
+    id="date" 
+    name="date" 
+    type="date" 
+    value="{{ form_data.date if form_data else (transaction.date or transaction['date']) }}" 
+    required>
+
+  <label for="note">Note (optional)</label>
+  <input 
+    id="note" 
+    name="note" 
+    type="text" 
+    maxlength="255"
+    value="{{ form_data.note if form_data else (transaction.note or transaction['note']) }}">
+
+  <label for="category_id">Category (optional)</label>
+  <select id="category_id" name="category_id">
+    <option value="">No Category</option>
+    {% for category in categories %}
+      <option value="{{ category.id or category['id'] }}" 
+        {% if (form_data.category_id if form_data else (transaction.category_id or transaction['category_id']))|string == (category.id or category['id'])|string %}selected{% endif %}>
+        {{ category.name or category['name'] }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">💾 Save Changes</button>
+    <a href="/transaction" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+
+<style>
+  label small {
+    display: block;
+    font-weight: normal;
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .form-message {
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    background: #f1f3f5;
+    color: #495057;
+    display: none;
+  }
+
+  .form-message.success {
+    display: block;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .form-message.error {
+    display: block;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+</style>
+
+<script>
+  const form = document.getElementById("transaction-edit-form");
+  const message = document.getElementById("form-message");
+  const typeSelect = document.getElementById("type");
+  const amountInput = document.getElementById("amount_cents");
+  const dateInput = document.getElementById("date");
+  const noteInput = document.getElementById("note");
+  const categorySelect = document.getElementById("category_id");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    message.textContent = "";
+    message.className = "form-message";
+
+    const type = typeSelect.value;
+    const amountCents = Number.parseInt(amountInput.value, 10);
+    const date = dateInput.value;
+    const note = noteInput.value.trim();
+    const categoryId = Number.parseInt(categorySelect.value, 10);
+
+    if (!type) {
+      message.textContent = "Type is required.";
+      message.className = "form-message error";
+      return;
+    }
+
+    if (!Number.isInteger(amountCents) || amountCents < 0) {
+      message.textContent = "Amount must be a non-negative integer (cents).";
+      message.className = "form-message error";
+      return;
+    }
+
+    if (!date) {
+      message.textContent = "Date is required.";
+      message.className = "form-message error";
+      return;
+    }
+
+    if (!Number.isInteger(categoryId)) {
+      message.textContent = "Category is required by the JSON API.";
+      message.className = "form-message error";
+      return;
+    }
+
+    const payload = {
+      type,
+      amount_cents: amountCents,
+      date,
+      note,
+      category_id: categoryId
+    };
+
+    const transactionId = form.dataset.transactionId;
+    const response = await fetch(`/transaction/${transactionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      message.textContent = errorText || "Failed to update transaction.";
+      message.className = "form-message error";
+      return;
+    }
+
+    message.textContent = "Transaction updated.";
+    message.className = "form-message success";
+  });
+</script>
+
+{% endblock %}
