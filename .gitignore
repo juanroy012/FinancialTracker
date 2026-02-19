@@ -34,7 +34,7 @@ build/
 .DS_Store
 Thumbs.db
 
-.github/instructions/
+.github
 .mypy_cache
 LEARNING.md
 PLAN.md
@@ -43,5 +43,3 @@ node_modules/
 
 # Fly.io
 .fly/
-
-seeds.py

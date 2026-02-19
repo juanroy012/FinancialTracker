@@ -27,7 +27,7 @@ primary_region = "sjc"     # nearest region: sjc=US-West, iad=US-East, lhr=Europ
   cpus     = 1
 
 [http_service]
-  internal_port       = 8000
+  internal_port       = 8080
   force_https         = true
   auto_stop_machines  = "stop"   # stop when no traffic (saves free allowance)
   auto_start_machines = true
