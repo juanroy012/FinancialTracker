@@ -1,53 +1,23 @@
-# Fly.io deployment configuration
-# Docs: https://fly.io/docs/reference/configuration/
+# fly.toml app configuration file generated for financialtracker on 2026-02-19T04:50:24Z
 #
-# First-time deploy:
-#   1. Install flyctl:  https://fly.io/docs/hands-on/install-flyctl/
-#   2. fly auth login
-#   3. fly launch --no-deploy          # registers the app, skips first deploy
-#   4. fly volumes create ft_data --size 1 --region <your-region>
-#   5. fly deploy
-#   6. fly open
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
-# Subsequent deploys:  fly deploy
 
-app = "financialtracker"   # ← change to your unique app name (fly launch sets this)
-primary_region = "sjc"     # nearest region: sjc=US-West, iad=US-East, lhr=Europe
+app = 'financialtracker'
+primary_region = 'ams'
 
 [build]
-  dockerfile = "Dockerfile"
-
-[env]
-  FT_DATA_DIR = "/data"
-
-# The single machine Fly gives you on the free plan
-[[vm]]
-  memory   = "256mb"
-  cpu_kind = "shared"
-  cpus     = 1
 
 [http_service]
-  internal_port       = 8000
-  force_https         = true
-  auto_stop_machines  = "stop"   # stop when no traffic (saves free allowance)
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
+  processes = ['app']
 
-  [http_service.concurrency]
-    type       = "connections"
-    hard_limit = 25
-    soft_limit = 20
-
-# Health check – Fly will restart the machine if this fails
-[[http_service.checks]]
-  interval = "30s"
-  timeout  = "5s"
-  grace_period = "10s"
-  method   = "GET"
-  path     = "/docs"
-
-# Persistent volume – SQLite database survives redeploys
-# Create once with:  fly volumes create ft_data --size 1 --region <your-region>
-[[mounts]]
-  source      = "ft_data"
-  destination = "/data"
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 256
