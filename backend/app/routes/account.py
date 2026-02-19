@@ -15,7 +15,7 @@ account_router = APIRouter(prefix="/accounts", tags=["Accounts"])
 def account_list(conn: Connection = Depends(get_connection)):
     return get_all_accounts(conn)
 
-@account_router.get("/{account_name}", response_model=AccountRead)
+@account_router.get("/{account_name}", response_model=List[AccountRead])
 def account_details(
     account_name: str,
     conn: Connection = Depends(get_connection),

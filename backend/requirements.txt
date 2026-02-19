@@ -1,12 +1,4 @@
-# Financial Tracker — Python dependencies
-# Install: pip install -r requirements.txt (inside a virtual environment)
-
-# Web framework: routes, templates, request/response
-Flask>=3.0.0
-
-# Load environment variables from .env (e.g. SECRET_KEY, DATABASE_URL)
-python-dotenv>=1.0.0
-
-# Optional for development: auto-reload and debugger (usually comes with Flask)
-# Optional for later: pytest, pytest-cov for tests
-Faker>=18.9.0
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+aiofiles>=23.2.0
+pydantic>=2.7.0

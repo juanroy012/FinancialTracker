@@ -1,5 +1,3 @@
-# These Pydantic models define the structure for creating, updating, and reading category data with
-# attributes like name, type, icon, color and id.
 from typing import Literal
 from pydantic import BaseModel
 

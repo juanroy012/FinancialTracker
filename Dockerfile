@@ -1,28 +1,38 @@
-# Financial Tracker — run app and dependencies in a container
-# Build: docker build -t financial-tracker .
-# Run:   docker run -p 5000:5000 financial-tracker
+# ─── Stage 1: build React frontend ─────────────────────────────────────────
+FROM node:20-slim AS frontend-builder
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
+# ─── Stage 2: Python backend + built frontend ───────────────────────────────
+# Build:  docker build -t financial-tracker .
+# Run:    docker run -p 8000:8000 financial-tracker
+# Open:   http://localhost:8000
 FROM python:3.12-slim
 
-# Create app user (don't run as root)
 RUN useradd --create-home appuser
 WORKDIR /app
 
-# Install dependencies first (better layer caching)
-COPY requirements.txt .
+# Install Python dependencies
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY --chown=appuser:appuser . .
+# Copy backend source
+COPY --chown=appuser:appuser backend/ ./backend/
 
-# Ensure appuser can create files in /app (e.g. instance/ and app.db)
-RUN mkdir -p /app/instance && chown -R appuser:appuser /app
+# Copy built React app so FastAPI can serve it
+COPY --from=frontend-builder --chown=appuser:appuser /frontend/dist ./frontend/dist
 
-# Listen on all interfaces so the app is reachable from outside the container
-ENV FLASK_RUN_HOST=0.0.0.0
-EXPOSE 5000
+# Writable data directory – on Fly.io this is backed by a persistent volume
+# mounted at /data (see fly.toml).  Locally it falls back to /app/instance.
+RUN mkdir -p /data /app/instance && chown -R appuser:appuser /data /app
 
+ENV FT_DATA_DIR=/data
+
+EXPOSE 8000
 USER appuser
 
-# Same as: python -m app (Flask will read FLASK_RUN_HOST)
-CMD ["python", "-m", "app"]
+# Run uvicorn from the repo root so relative paths resolve correctly
+CMD ["uvicorn", "backend.app.__main__:app", "--host", "0.0.0.0", "--port", "8000"]

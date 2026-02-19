@@ -1,24 +1,18 @@
 """
 Database connection and initialization for SQLite.
-All DB access goes through get_connection() or helpers defined here.
 """
 import sqlite3
 from pathlib import Path
 from typing import Generator
 
-
-# Use an absolute path anchored to the repo root (two levels up from this file)
-# so the DB is always found regardless of the CWD when uvicorn starts.
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-DB_PATH = str(_REPO_ROOT / "instance" / "app.db")
-Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+import os as _os
+_data_dir = Path(_os.environ.get("FT_DATA_DIR") or Path(__file__).resolve().parents[2] / "instance")
+_data_dir.mkdir(parents=True, exist_ok=True)
+DB_PATH = str(_data_dir / "app.db")
 
 def get_connection() -> Generator[sqlite3.Connection, None, None]:
-    """Open a connection and enable WAL mode for safe concurrent reads."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    # WAL (Write-Ahead Logging) lets multiple readers coexist with a writer.
-    # Without it, simultaneous requests (e.g. Promise.all) can get a 500.
     conn.execute("PRAGMA journal_mode=WAL")
     try:
         yield conn

@@ -10,7 +10,7 @@ transaction_router = APIRouter(prefix="/transactions", tags=["Transaction"])
 def transaction_list(conn: Connection = Depends(get_connection)):
     return get_all_transactions(conn)
 
-@transaction_router.get("/{transaction_name}", response_model=TransactionRead)
+@transaction_router.get("/{transaction_name}", response_model=list[TransactionRead])
 def transaction_details(
     transaction_name: str,
     conn: Connection = Depends(get_connection)
