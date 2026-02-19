@@ -31,8 +31,8 @@ RUN mkdir -p /data /app/instance && chown -R appuser:appuser /data /app
 
 ENV FT_DATA_DIR=/data
 
-EXPOSE 8000
+EXPOSE 8080
 USER appuser
 
 # Run uvicorn from the repo root so relative paths resolve correctly
-CMD ["uvicorn", "backend.app.__main__:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend.app.__main__:app", "--host", "0.0.0.0", "--port", "8080"]
