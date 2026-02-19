@@ -37,3 +37,6 @@ Thumbs.db
 .github
 .mypy_cache
 LEARNING.md
+PLAN.md
+docs/
+node_modules/

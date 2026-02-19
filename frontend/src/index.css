@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* ── Dark mode (default) ─────────────────────────────── */
+:root {
+  --ft-body: 'Inter', system-ui, sans-serif;
+  --ft-display: 'Playfair Display', Georgia, serif;
+
+  --bg-app:      #020617;
+  --bg-surface:  #0f172a;
+  --bg-surface-2:#1e293b;
+  --bg-hover:    rgba(30,41,59,0.50);
+  --border:      #1e293b;
+  --border-hi:   #334155;
+  --text:        #f1f5f9;
+  --text-muted:  #94a3b8;
+  --text-faint:  #475569;
+  --accent:      #f59e0b;
+  --accent-hi:   #fbbf24;
+  --accent-text: #fbbf24;
+  --accent-dim:  rgba(245,158,11,0.15);
+  --accent-ring: rgba(245,158,11,0.30);
+}
+
+/* ── Light mode ──────────────────────────────────────── */
+html.light {
+  --bg-app:      #f1f5f9;
+  --bg-surface:  #ffffff;
+  --bg-surface-2:#f1f5f9;
+  --bg-hover:    rgba(226,232,240,0.70);
+  --border:      #e2e8f0;
+  --border-hi:   #cbd5e1;
+  --text:        #0f172a;
+  --text-muted:  #64748b;
+  --text-faint:  #94a3b8;
+  --accent:      #d97706;
+  --accent-hi:   #b45309;
+  --accent-text: #92400e;
+  --accent-dim:  rgba(217,119,6,0.10);
+  --accent-ring: rgba(217,119,6,0.22);
+}
+
+/* ── Light-mode Tailwind overrides (no component edits needed) ── */
+html.light .text-slate-100 { color: #0f172a !important; }
+html.light .text-slate-200 { color: #1e293b !important; }
+html.light .text-slate-300 { color: #334155 !important; }
+html.light .text-slate-400 { color: #475569 !important; }
+html.light .text-slate-500 { color: #64748b !important; }
+html.light .text-slate-950 { color: #f8fafc !important; }
+
+html.light .bg-slate-800  { background-color: #e2e8f0 !important; }
+html.light .bg-slate-900  { background-color: #f1f5f9 !important; }
+html.light .bg-slate-950  { background-color: #f8fafc !important; }
+html.light .bg-slate-800\/50,
+html.light .bg-slate-900\/50 { background-color: rgba(241,245,249,0.7) !important; }
+
+html.light .border-slate-700 { border-color: #cbd5e1 !important; }
+html.light .border-slate-800 { border-color: #e2e8f0 !important; }
+html.light .border-slate-900 { border-color: #f1f5f9 !important; }
+
+html.light .divide-slate-800 > * + * { border-color: #e2e8f0 !important; }
+
+html.light .hover\:bg-slate-800:hover { background-color: #e2e8f0 !important; }
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    background-color: var(--bg-app);
+    color: var(--text);
+    @apply m-0 min-h-screen;
+    font-family: var(--ft-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Reusable input style */
+.ft-input {
+  @apply w-full rounded-lg placeholder-slate-500 px-3 py-2 text-sm
+         focus:outline-none transition;
+  color: var(--text);
+  background-color: var(--bg-surface-2);
+  border: 1px solid var(--border-hi);
+}
+.ft-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Primary CTA button */
+.ft-btn-primary {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-slate-950 font-semibold
+         text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--accent);
+}
+.ft-btn-primary:hover  { background-color: var(--accent-hi); }
+.ft-btn-primary:active { filter: brightness(0.9); }
+
+/* Danger button */
+.ft-btn-danger {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-600
+         hover:bg-rose-500 active:bg-rose-700 text-white font-semibold
+         text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Ghost/cancel button */
+.ft-btn-ghost {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+         font-medium text-sm transition-colors;
+  color: var(--text-muted);
+  border: 1px solid var(--border-hi);
+}
+.ft-btn-ghost:hover { background-color: var(--bg-surface-2); color: var(--text); }
+
+/* Card panel */
+.ft-card {
+  border-radius: 1rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+}
+
+/* Modal overlay */
+.ft-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center
+         bg-black/70 backdrop-blur-sm p-4;
+}
+
+/* Accent spinner */
+.ft-spinner {
+  width: 2rem; height: 2rem;
+  border-radius: 9999px;
+  border: 2px solid var(--border-hi);
+  border-top-color: var(--accent);
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
