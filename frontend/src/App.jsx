@@ -58,9 +58,22 @@ function ThemeToggle({ dark, toggle }) {
   )
 }
 
+function HamburgerIcon({ open }) {
+  return (
+    <svg className='w-5 h-5' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+      {open ? (
+        <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
+      ) : (
+        <path strokeLinecap='round' strokeLinejoin='round' d='M4 6h16M4 12h16M4 18h16' />
+      )}
+    </svg>
+  )
+}
+
 function App() {
   const [path, setPath] = useState(window.location.pathname)
   const [dark, setDark] = useState(() => localStorage.getItem('ft-dark') !== 'false')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const toggleDark = () => {
     const next = !dark
@@ -81,10 +94,19 @@ function App() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
+  // Close menu when route changes or screen resizes to desktop
+  useEffect(() => { setMenuOpen(false) }, [path])
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth >= 768) setMenuOpen(false) }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const navigate = (to) => (e) => {
     e.preventDefault()
     window.history.pushState({}, '', to)
     setPath(to)
+    setMenuOpen(false)
   }
 
   let View = <DashboardView />
@@ -98,20 +120,23 @@ function App() {
         background: 'var(--bg-surface)',
         borderBottom: '1px solid var(--border)',
       }}>
-        <div className='max-w-6xl mx-auto px-6 h-16 flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <div className='w-8 h-8 rounded-lg flex items-center justify-center' style={{ background: 'var(--accent)' }}>
+        <div className='max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between'>
+          {/* Logo */}
+          <div className='flex items-center gap-2.5'>
+            <div className='w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0' style={{ background: 'var(--accent)' }}>
               <svg className='w-4 h-4' style={{ color: 'white' }} fill='currentColor' viewBox='0 0 20 20'>
                 <path d='M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z' />
                 <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z' clipRule='evenodd' />
               </svg>
             </div>
             <span style={{ fontFamily: "'Playfair Display', Georgia, serif", color: 'var(--text)' }}
-              className='font-bold text-lg tracking-tight'>
+              className='font-bold text-base sm:text-lg tracking-tight'>
               FinancialTracker
             </span>
           </div>
-          <div className='flex items-center gap-2'>
+
+          {/* Desktop nav */}
+          <div className='hidden md:flex items-center gap-2'>
             <nav className='flex items-center gap-1'>
               {NAV_ITEMS.map(({ href, label, icon }) => {
                 const active = path === href
@@ -141,9 +166,63 @@ function App() {
             <div className='w-px h-5 mx-1' style={{ background: 'var(--border-hi)' }} />
             <ThemeToggle dark={dark} toggle={toggleDark} />
           </div>
+
+          {/* Mobile right: theme toggle + hamburger */}
+          <div className='flex md:hidden items-center gap-1'>
+            <ThemeToggle dark={dark} toggle={toggleDark} />
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className='w-9 h-9 rounded-lg flex items-center justify-center transition-colors'
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-surface-2)'; e.currentTarget.style.color = 'var(--text)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-muted)' }}
+              aria-label='Toggle menu'
+            >
+              <HamburgerIcon open={menuOpen} />
+            </button>
+          </div>
         </div>
+
+        {/* Mobile drawer */}
+        {menuOpen && (
+          <div className='md:hidden' style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+            <nav className='max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1'>
+              {NAV_ITEMS.map(({ href, label, icon }) => {
+                const active = path === href
+                return (
+                  <a
+                    key={href}
+                    href={href}
+                    onClick={navigate(href)}
+                    className='flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150'
+                    style={active ? {
+                      background: 'var(--accent-dim)',
+                      color: 'var(--accent-text)',
+                      border: '1px solid var(--accent-ring)',
+                    } : {
+                      color: 'var(--text-muted)',
+                      border: '1px solid transparent',
+                    }}
+                  >
+                    {icon}
+                    {label}
+                  </a>
+                )
+              })}
+            </nav>
+          </div>
+        )}
       </header>
-      <main className='max-w-6xl mx-auto px-6 py-10'>
+
+      {/* Overlay to close menu when tapping outside */}
+      {menuOpen && (
+        <div
+          className='fixed inset-0 z-30 md:hidden'
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      <main className='max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10'>
         {View}
       </main>
     </div>

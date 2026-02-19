@@ -107,10 +107,10 @@ export default function CategoriesView() {
   return (
     <section>
       {/* Header */}
-      <div className='flex items-start justify-between mb-8'>
+      <div className='flex items-start justify-between mb-6 sm:mb-8 gap-3'>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            className='text-4xl font-bold text-slate-100 tracking-tight'>
+            className='text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight'>
             Categories
           </h1>
           <p className='text-slate-500 text-sm mt-1'>{categories.length} categories</p>
@@ -172,7 +172,7 @@ export default function CategoriesView() {
                       </div>
 
                       {/* Actions */}
-                      <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                      <div className='flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity'>
                         <button
                           onClick={() => openEdit(c)}
                           className='p-1.5 rounded-md text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors'

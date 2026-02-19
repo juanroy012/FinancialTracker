@@ -173,7 +173,7 @@ export default function DashboardView() {
       <div className='flex items-start justify-between mb-8 flex-wrap gap-4'>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            className='text-4xl font-bold text-slate-100 tracking-tight'>
+            className='text-2xl sm:text-4xl font-bold text-slate-100 tracking-tight'>
             Overview
           </h1>
           <p className='text-slate-500 text-sm mt-1'>

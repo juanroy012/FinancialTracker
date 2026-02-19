@@ -1,4 +1,4 @@
-const BASE = 'http://127.0.0.1:8000/accounts'
+const BASE = `${import.meta.env.VITE_API_BASE ?? ''}/accounts`
 
 export async function getAccounts() {
   const res = await fetch(`${BASE}/`)
