@@ -133,3 +133,21 @@ html.light .hover\:bg-slate-800:hover { background-color: #e2e8f0 !important; }
   animation: spin 0.75s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Themed scrollbars ───────────────────────────────── */
+/* Global page scrollbar */
+::-webkit-scrollbar               { width: 6px; height: 6px; }
+::-webkit-scrollbar-track         { background: var(--bg-app); }
+::-webkit-scrollbar-thumb         { background: var(--border-hi); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover   { background: var(--text-faint); }
+
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: var(--border-hi) transparent; }
+
+/* Utility class for small inner scroll areas (e.g. category legend) */
+.ft-scrollbar::-webkit-scrollbar               { width: 4px; }
+.ft-scrollbar::-webkit-scrollbar-track         { background: transparent; }
+.ft-scrollbar::-webkit-scrollbar-thumb         { background: var(--border-hi); border-radius: 9999px; }
+.ft-scrollbar::-webkit-scrollbar-thumb:hover   { background: var(--accent); }
+.ft-scrollbar { scrollbar-width: thin; scrollbar-color: var(--border-hi) transparent; }
+

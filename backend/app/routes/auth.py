@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlite3 import Connection, IntegrityError
+
 from ..db import get_connection
 from ..models.user import get_user_by_username, create_user
 from ..schemas.user import UserCreate, UserRead, Token
@@ -17,10 +18,7 @@ def register(new: UserCreate, conn: Connection = Depends(get_connection)):
     return user
 
 @auth_router.post("/token", response_model=Token)
-def login(
-        form: OAuth2PasswordRequestForm = Depends(),
-        conn: Connection = Depends(get_connection),
-):
+def login(form: OAuth2PasswordRequestForm = Depends(), conn: Connection = Depends(get_connection)):
     user = get_user_by_username(form.username, conn)
     if not user or not verify_password(form.password, user["hashed_password"]):
         raise HTTPException(
@@ -33,9 +31,4 @@ def login(
 
 @auth_router.post("/logout", status_code=200)
 def logout(current_user=Depends(get_current_user)):
-    # JWTs are stateless — the real logout happens on the frontend by deleting the token.
-    # This endpoint exists so the frontend has a clear API call to make, and so future
-    # server-side token blocklisting can be added here without changing the frontend.
-    return {"detail": f"Logged out successfully"}
-
-
+    return {"detail": "Logged out successfully"}

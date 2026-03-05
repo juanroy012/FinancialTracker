@@ -56,7 +56,7 @@ function CatPieTooltip({ active, payload, fmt }) {
 function CatLegend({ data }) {
   if (!data?.length) return null
   return (
-    <div className='mt-3 max-h-32 overflow-y-auto flex flex-col gap-1.5 pr-1'>
+    <div className='mt-3 max-h-32 overflow-y-auto ft-scrollbar flex flex-col gap-1.5 pr-1'>
       {data.map((entry, i) => (
         <div key={i} className='flex items-center gap-2 min-w-0'>
           <span className='w-2.5 h-2.5 rounded-full shrink-0' style={{ background: entry.fill }} />
@@ -138,7 +138,7 @@ export default function DashboardView() {
   const buildCatPie = (txs) => {
     const totals = {}
     txs.forEach(t => {
-      const name = categories.find(c => c.id === t.category_id)?.name ?? 'Tanpa Kategori'
+      const name = categories.find(c => c.id === t.category_id)?.name ?? 'Uncategorized'
       totals[name] = (totals[name] || 0) + t.amount_cents
     })
     const total = Object.values(totals).reduce((s, v) => s + v, 0)

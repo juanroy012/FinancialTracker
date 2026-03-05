@@ -36,10 +36,15 @@ Thumbs.db
 
 .github
 .mypy_cache
-LEARNING.md
 PLAN.md
 docs/
 node_modules/
 
 # Fly.io
 .fly/
+
+# Seeder (local dev only — contains hardcoded credentials)
+backend/seed.py
+
+CODING_INSTRUCTIONS.md
+

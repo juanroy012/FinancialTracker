@@ -4,6 +4,7 @@ import CategoriesView from './components/CategoriesView'
 import TransactionsView from './components/TransactionsView'
 import AccountsView from './components/AccountsView'
 import LoginView from './components/LoginView'
+import VersionBadge from './components/VersionBadge'
 import { logout as apiLogout } from './api/auth'
 import { CURRENCIES } from './utils/currency'
 import { useCurrency } from './context/CurrencyContext'
@@ -312,6 +313,14 @@ function App() {
       <main className='max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10'>
         {View}
       </main>
+
+      <footer className='max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between'
+        style={{ borderTop: '1px solid var(--border)' }}>
+        <span className='text-xs' style={{ color: 'var(--text-faint)' }}>
+          FinancialTracker
+        </span>
+        <VersionBadge />
+      </footer>
     </div>
   )
 }

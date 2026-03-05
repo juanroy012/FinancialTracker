@@ -1,12 +1,12 @@
 # FinancialTracker
 
-![Tests](https://github.com/juan-roy/FinancialTracker/actions/workflows/test.yml/badge.svg)
+[![Tests](https://github.com/juanroy012/FinancialTracker/actions/workflows/test.yml/badge.svg)](https://github.com/juanroy012/FinancialTracker/actions/workflows/test.yml)
 
 A self-hosted personal finance tracker for managing accounts, transactions, and categories — with per-user data isolation and JWT authentication.
 
 Built with **FastAPI** (Python backend) + **React + Vite** (frontend) + **SQLite**.
 
-Live demo: **https://finance.juan-roy.com**
+Live demo: **https://finance.juan-roy.com** · [Patch Notes →](CHANGELOG.md)
 
 ---
 
@@ -59,6 +59,7 @@ FinancialTracker/
 │   ├── index.html
 │   └── package.json
 ├── instance/                  # SQLite database file (auto-created, gitignored)
+├── CHANGELOG.md               # Full version history
 ├── Dockerfile                 # Multi-stage production build
 └── fly.toml                   # Fly.io deployment config
 ```
@@ -131,8 +132,14 @@ Tests use an **in-memory SQLite database** — no external services or `.env` fi
 
 ### CI (GitHub Actions)
 
-Tests run automatically on every push and pull request to `main` via `.github/workflows/test.yml`.
-The workflow runs on `ubuntu-latest` with Python 3.12 and caches pip dependencies for speed.
+Two jobs run automatically on every push and pull request to `main` / `develop` via `.github/workflows/test.yml`:
+
+| Job | What it checks |
+|---|---|
+| **Backend (pytest)** | Runs all 28+ tests against an in-memory SQLite DB on Python 3.12 |
+| **Frontend (build check)** | Runs `npm run build` to catch broken imports, missing env defines, or TypeErrors at compile time |
+
+Both must pass before merging. A red CI = do not merge.
 
 ---
 
@@ -181,6 +188,7 @@ No `.env` file is required for local development. All defaults work out of the b
 > ⚠️ Always set a strong `SECRET_KEY` in production. Anyone with this key can forge valid login tokens.
 
 ---
+
 
 ## Database
 
