@@ -104,5 +104,12 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    # Non-breaking migration: add currency to accounts.
+    try:
+        conn.execute("ALTER TABLE accounts ADD COLUMN currency TEXT NOT NULL DEFAULT 'IDR'")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
     conn.close()

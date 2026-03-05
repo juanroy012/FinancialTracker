@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { getTransactions } from '../api/transactions'
 import { getCategories } from '../api/categories'
+import { getAccounts } from '../api/accounts'
+import { useCurrency } from '../context/CurrencyContext'
 import {
   PieChart, Pie, Cell, Tooltip as ReTooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const fmt = (val) => 'Rp ' + Number(val).toLocaleString('id-ID')
 const CAT_COLORS = [
   '#f59e0b','#8b5cf6','#06b6d4','#34d399','#fb7185',
   '#38bdf8','#f97316','#ec4899','#a3e635','#e879f9',
@@ -28,7 +29,7 @@ function StatCard({ label, value, sub, color, icon }) {
   )
 }
 
-function PieTooltip({ active, payload }) {
+function PieTooltip({ active, payload, fmt }) {
   if (!active || !payload?.length) return null
   const d = payload[0]
   return (
@@ -40,7 +41,7 @@ function PieTooltip({ active, payload }) {
   )
 }
 
-function CatPieTooltip({ active, payload }) {
+function CatPieTooltip({ active, payload, fmt }) {
   if (!active || !payload?.length) return null
   const d = payload[0]
   return (
@@ -73,17 +74,35 @@ export default function DashboardView() {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [transactions, setTransactions] = useState([])
   const [categories, setCategories]     = useState([])
+  const [accounts, setAccounts]         = useState([])
   const [loading, setLoading]           = useState(true)
   const [error, setError]               = useState('')
+  const { fmt, displayCurrency }        = useCurrency()
 
   useEffect(() => {
     let mounted = true
-    Promise.all([getTransactions(), getCategories()])
-      .then(([txs, cats]) => { if (mounted) { setTransactions(txs); setCategories(cats) } })
+    Promise.all([getTransactions(), getCategories(), getAccounts()])
+      .then(([txs, cats, accs]) => {
+        if (mounted) {
+          setTransactions(txs)
+          setCategories(cats)
+          setAccounts(accs)
+        }
+      })
       .catch(err => { if (mounted) setError(err.message) })
       .finally(() => { if (mounted) setLoading(false) })
     return () => { mounted = false }
   }, [])
+
+  // Total balance grouped by currency
+  const accountTotals = useMemo(() => {
+    const map = {}
+    accounts.forEach(a => {
+      const c = a.currency || 'IDR'
+      map[c] = (map[c] || 0) + a.balance
+    })
+    return Object.entries(map).sort((x, y) => x[0].localeCompare(y[0]))
+  }, [accounts])
 
   const catName = (id) => categories.find(c => c.id === id)?.name
 
@@ -190,7 +209,7 @@ export default function DashboardView() {
       </div>
 
       {/* Stat cards */}
-      <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8'>
+      <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
         <StatCard
           label='Monthly Income'
           value={fmt(monthIncome)}
@@ -214,6 +233,27 @@ export default function DashboardView() {
         />
       </div>
 
+      {/* Account totals — one card per currency */}
+      {accountTotals.length > 0 && (
+        <div className='ft-card p-5 mb-8'>
+          <p className='text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3'>
+            Total Account Balance
+          </p>
+          <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
+            {accountTotals.map(([currency, total]) => (
+              <div key={currency} className='flex flex-col gap-0.5'>
+                <p className='text-xs text-slate-500'>{currency} · {accounts.filter(a => (a.currency || 'IDR') === currency).length} account{accounts.filter(a => (a.currency || 'IDR') === currency).length !== 1 ? 's' : ''}</p>
+                <p className={`text-base font-bold tabular-nums ${
+                  total > 0 ? 'text-emerald-400' : total < 0 ? 'text-rose-400' : 'text-slate-400'
+                }`}>
+                  {fmt(total, currency)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 3 Pie charts */}
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
         {/* Chart 1: Income vs Expense donut */}
@@ -228,7 +268,7 @@ export default function DashboardView() {
                   paddingAngle={3} dataKey='value' stroke='none'>
                   {pieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                 </Pie>
-                <ReTooltip content={<PieTooltip />} />
+                <ReTooltip content={<PieTooltip fmt={fmt} />} />
                 <Legend formatter={val => <span className='text-slate-400 text-xs'>{val}</span>}
                   iconType='circle' iconSize={8} />
               </PieChart>
@@ -249,28 +289,28 @@ export default function DashboardView() {
                     paddingAngle={3} dataKey='value' stroke='none'>
                     {incomeCatData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                   </Pie>
-                  <ReTooltip content={<CatPieTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <CatLegend data={incomeCatData} />
-            </>
-          )}
-        </div>
+              <ReTooltip content={<CatPieTooltip fmt={fmt} />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <CatLegend data={incomeCatData} />
+          </>
+        )}
+      </div>
 
-        {/* Chart 3: Expense by Category */}
-        <div className='ft-card p-6'>
-          <h2 className='text-base font-semibold text-slate-100 mb-4'>Expense by Category</h2>
-          {expenseCatData.length === 0 ? (
-            <div className='flex items-center justify-center h-44 text-slate-600 text-sm'>No expenses this month.</div>
-          ) : (
-            <>
-              <ResponsiveContainer width='100%' height={180}>
-                <PieChart>
-                  <Pie data={expenseCatData} cx='50%' cy='50%' innerRadius={52} outerRadius={76}
-                    paddingAngle={3} dataKey='value' stroke='none'>
-                    {expenseCatData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-                  </Pie>
-                  <ReTooltip content={<CatPieTooltip />} />
+      {/* Chart 3: Expense by Category */}
+      <div className='ft-card p-6'>
+        <h2 className='text-base font-semibold text-slate-100 mb-4'>Expense by Category</h2>
+        {expenseCatData.length === 0 ? (
+          <div className='flex items-center justify-center h-44 text-slate-600 text-sm'>No expenses this month.</div>
+        ) : (
+          <>
+            <ResponsiveContainer width='100%' height={180}>
+              <PieChart>
+                <Pie data={expenseCatData} cx='50%' cy='50%' innerRadius={52} outerRadius={76}
+                  paddingAngle={3} dataKey='value' stroke='none'>
+                  {expenseCatData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                </Pie>
+                <ReTooltip content={<CatPieTooltip fmt={fmt} />} />
                 </PieChart>
               </ResponsiveContainer>
               <CatLegend data={expenseCatData} />
@@ -307,7 +347,7 @@ export default function DashboardView() {
                 </div>
                 <div className='text-right shrink-0 ml-4'>
                   <p className={`text-sm font-semibold tabular-nums ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {t.type === 'income' ? '+' : '−'}{fmt(t.amount_cents)}
+                    {t.type === 'income' ? '+' : '−'}{fmt(t.amount_cents, accounts.find(a => a.id === t.account_id)?.currency || 'IDR')}
                   </p>
                   <p className='text-xs text-slate-500'>{t.date}</p>
                 </div>
@@ -325,8 +365,8 @@ export default function DashboardView() {
             <CartesianGrid strokeDasharray='3 3' stroke='#1e293b' vertical={false} />
             <XAxis dataKey='month' tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
             <YAxis
-              tickFormatter={v => v >= 1e6 ? `${(v/1e6).toFixed(1)}jt` : v >= 1e3 ? `${(v/1e3).toFixed(0)}rb` : v}
-              tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={56}
+              tickFormatter={v => fmt(v)}
+              tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={80}
             />
             <ReTooltip
               formatter={(val, name) => [fmt(val), name === 'income' ? 'Income' : 'Expense']}

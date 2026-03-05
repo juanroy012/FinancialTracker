@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     name    TEXT NOT NULL,
     balance INTEGER NOT NULL DEFAULT 0,
     icon    TEXT NOT NULL DEFAULT '',
+    currency TEXT NOT NULL DEFAULT 'IDR',
     user_id INTEGER REFERENCES users(id)
 );
 CREATE TABLE IF NOT EXISTS transactions (

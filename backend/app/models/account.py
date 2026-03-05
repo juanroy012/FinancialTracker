@@ -7,7 +7,7 @@ def get_all_accounts(user_id: int, conn: sqlite3.Connection) -> List[AccountRead
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM accounts WHERE user_id = ?", (user_id,))
     rows = cursor.fetchall()
-    return [AccountRead(id=row["id"], type=row["type"], name=row["name"], balance=row["balance"], icon=row["icon"]) for row in rows]
+    return [AccountRead(id=row["id"], type=row["type"], name=row["name"], balance=row["balance"], icon=row["icon"], currency=row["currency"]) for row in rows]
 
 def get_accounts_by_name(name: str, user_id: int, conn: sqlite3.Connection) -> List[AccountRead] | None:
     cursor = conn.cursor()
@@ -15,17 +15,17 @@ def get_accounts_by_name(name: str, user_id: int, conn: sqlite3.Connection) -> L
     rows = cursor.fetchall()
     if not rows:
         return None
-    return [AccountRead(id=row["id"], type=row["type"], name=row["name"], balance=row["balance"], icon=row["icon"]) for row in rows]
+    return [AccountRead(id=row["id"], type=row["type"], name=row["name"], balance=row["balance"], icon=row["icon"], currency=row["currency"]) for row in rows]
 
 def create_account(account: AccountCreate, user_id: int, conn: sqlite3.Connection) -> AccountRead:
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO accounts(type, name, balance, icon, user_id) VALUES (?, ?, ?, ?, ?)",
-        (account.type, account.name, account.balance, account.icon, user_id)
+        "INSERT INTO accounts(type, name, balance, icon, currency, user_id) VALUES (?, ?, ?, ?, ?, ?)",
+        (account.type, account.name, account.balance, account.icon, account.currency, user_id)
     )
     conn.commit()
     account_id = cursor.lastrowid
-    return AccountRead(id=account_id, type=account.type, name=account.name, balance=account.balance, icon=account.icon)
+    return AccountRead(id=account_id, type=account.type, name=account.name, balance=account.balance, icon=account.icon, currency=account.currency)
 
 def delete_account(account_id: int, user_id: int, conn: sqlite3.Connection) -> bool:
     cursor = conn.cursor()
@@ -45,8 +45,8 @@ def update_account(
     if row is None:
         return None
     cursor.execute(
-        "UPDATE accounts SET type = ?, name = ?, balance = ?, icon = ? WHERE id = ? AND user_id = ?",
-        (update.type, update.name, update.balance, update.icon, account_id, user_id)
+        "UPDATE accounts SET type = ?, name = ?, balance = ?, icon = ?, currency = ? WHERE id = ? AND user_id = ?",
+        (update.type, update.name, update.balance, update.icon, update.currency, account_id, user_id)
     )
     conn.commit()
-    return AccountRead(id=account_id, type=update.type, name=update.name, balance=update.balance, icon=update.icon)
+    return AccountRead(id=account_id, type=update.type, name=update.name, balance=update.balance, icon=update.icon, currency=update.currency)

@@ -1,18 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { getAccounts, addAccount, editAccount, deleteAccount } from '../api/accounts'
+import { CURRENCIES, fmtCurrency } from '../utils/currency'
 
-const EMPTY = { type: 'bank', name: '', balance: '' }
+const EMPTY = { type: 'bank', name: '', balance: '', currency: 'IDR' }
 
 const TYPE_STYLES = {
-  bank:     { ring: 'bg-sky-500/15 text-sky-400',       label: 'Bank' },
-  ewallet:  { ring: 'bg-violet-500/15 text-violet-400', label: 'E-Wallet' },
-}
-
-
-
-const fmt = (val) => {
-  if (typeof val !== 'number') return '—'
-  return 'Rp ' + val.toLocaleString('id-ID')
+  bank:    { ring: 'bg-sky-500/15 text-sky-400',       label: 'Bank' },
+  ewallet: { ring: 'bg-violet-500/15 text-violet-400', label: 'E-Wallet' },
 }
 
 function BankIcon() {
@@ -65,15 +59,15 @@ function Modal({ title, onClose, children }) {
 }
 
 export default function AccountsView() {
-  const [accounts, setAccounts] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [search, setSearch]     = useState('')
-  const [modal, setModal]       = useState(null)   // null | 'form' | 'delete'
-  const [form, setForm]         = useState(EMPTY)
-  const [editId, setEditId]     = useState(null)
-  const [deleteId, setDeleteId] = useState(null)
-  const [saving, setSaving]     = useState(false)
-  const [formError, setFormError] = useState('')
+  const [accounts, setAccounts]     = useState([])
+  const [loading, setLoading]       = useState(true)
+  const [search, setSearch]         = useState('')
+  const [modal, setModal]           = useState(null)
+  const [form, setForm]             = useState(EMPTY)
+  const [editId, setEditId]         = useState(null)
+  const [deleteId, setDeleteId]     = useState(null)
+  const [saving, setSaving]         = useState(false)
+  const [formError, setFormError]   = useState('')
 
   const refresh = () => {
     setLoading(true)
@@ -85,18 +79,28 @@ export default function AccountsView() {
 
   useEffect(() => { refresh() }, [])
 
-  // Client-side search — filters by name or type
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return accounts
     return accounts.filter(a =>
       a.name.toLowerCase().includes(q) ||
-      a.type.toLowerCase().includes(q)
+      a.type.toLowerCase().includes(q) ||
+      (a.currency ?? 'IDR').toLowerCase().includes(q)
     )
   }, [accounts, search])
 
+  // Total per currency — group accounts that share the same currency
+  const totals = useMemo(() => {
+    const map = {}
+    accounts.forEach(a => {
+      const c = a.currency || 'IDR'
+      map[c] = (map[c] || 0) + a.balance
+    })
+    return Object.entries(map).sort((x, y) => x[0].localeCompare(y[0]))
+  }, [accounts])
+
   const openAdd    = () => { setForm(EMPTY); setEditId(null); setFormError(''); setModal('form') }
-  const openEdit   = (a) => { setForm({ type: a.type, name: a.name, balance: a.balance.toString() }); setEditId(a.id); setFormError(''); setModal('form') }
+  const openEdit   = (a) => { setForm({ type: a.type, name: a.name, balance: a.balance.toString(), currency: a.currency || 'IDR' }); setEditId(a.id); setFormError(''); setModal('form') }
   const openDelete = (id) => { setDeleteId(id); setModal('delete') }
   const closeModal = () => { setModal(null); setDeleteId(null); setSaving(false) }
   const setField   = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -107,28 +111,21 @@ export default function AccountsView() {
     if (!trimmed) { setFormError('Account name cannot be empty.'); return }
     const balanceCents = Math.round(parseFloat(form.balance || 0))
     if (isNaN(balanceCents)) { setFormError('Enter a valid balance.'); return }
-    setSaving(true)
-    setFormError('')
+    setSaving(true); setFormError('')
     try {
-      if (editId) await editAccount(editId, { type: form.type, name: trimmed, balance: balanceCents })
-      else        await addAccount({ type: form.type, name: trimmed, balance: balanceCents })
-      closeModal()
-      refresh()
+      const payload = { type: form.type, name: trimmed, balance: balanceCents, currency: form.currency }
+      if (editId) await editAccount(editId, payload)
+      else        await addAccount(payload)
+      closeModal(); refresh()
     } catch (err) {
-      setFormError(err.message)
-      setSaving(false)
+      setFormError(err.message); setSaving(false)
     }
   }
 
   const handleDelete = async () => {
     setSaving(true)
-    try {
-      await deleteAccount(deleteId)
-      closeModal()
-      refresh()
-    } catch {
-      setSaving(false)
-    }
+    try { await deleteAccount(deleteId); closeModal(); refresh() }
+    catch { setSaving(false) }
   }
 
   return (
@@ -152,25 +149,36 @@ export default function AccountsView() {
         </button>
       </div>
 
+      {/* Total balance summary cards — one per currency */}
+      {!loading && totals.length > 0 && (
+        <div className='grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6'>
+          {totals.map(([currency, total]) => (
+            <div key={currency} className='ft-card p-4 flex flex-col gap-1'>
+              <p className='text-xs font-semibold uppercase tracking-widest text-slate-500'>
+                Total · {currency}
+              </p>
+              <p className={`text-lg font-bold tabular-nums tracking-tight ${
+                total > 0 ? 'text-emerald-400' : total < 0 ? 'text-rose-400' : 'text-slate-400'
+              }`}>
+                {fmtCurrency(total, currency)}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Search bar */}
       <div className='relative mb-6'>
         <svg className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none'
           fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
           <path strokeLinecap='round' strokeLinejoin='round' d='M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z' />
         </svg>
-        <input
-          type='text'
-          className='ft-input'
-          style={{ paddingLeft: '2.25rem' }}
-          placeholder='Search by name or type…'
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+        <input type='text' className='ft-input' style={{ paddingLeft: '2.25rem' }}
+          placeholder='Search by name, type or currency…'
+          value={search} onChange={e => setSearch(e.target.value)} />
         {search && (
-          <button
-            onClick={() => setSearch('')}
-            className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors'
-          >
+          <button onClick={() => setSearch('')}
+            className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors'>
             <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
               <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
             </svg>
@@ -178,7 +186,7 @@ export default function AccountsView() {
         )}
       </div>
 
-      {/* Content */}
+      {/* Account cards */}
       {loading ? (
         <div className='flex justify-center py-24'>
           <div className='w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin' />
@@ -197,40 +205,37 @@ export default function AccountsView() {
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
           {filtered.map(a => {
             const style = TYPE_STYLES[a.type] ?? TYPE_STYLES.bank
+            const currency = a.currency || 'IDR'
             return (
-              <div
-                key={a.id}
-                className='ft-card p-5 flex items-center justify-between group hover:border-slate-700 transition-colors'
-              >
+              <div key={a.id}
+                className='ft-card p-5 flex items-center justify-between group hover:border-slate-700 transition-colors'>
                 <div className='flex items-center gap-4'>
                   <AccountLogoTile type={a.type} />
                   <div>
                     <p className='text-sm font-semibold text-slate-100'>{a.name}</p>
                     <p className={`text-sm font-medium mt-1 ${
                       a.balance > 0 ? 'text-emerald-400' : a.balance < 0 ? 'text-rose-400' : 'text-slate-400'
-                    }`}>{fmt(a.balance)}</p>
-                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mt-2 ${style.ring}`}>
-                      {style.label}
-                    </span>
+                    }`}>{fmtCurrency(a.balance, currency)}</p>
+                    <div className='flex items-center gap-1.5 mt-2'>
+                      <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${style.ring}`}>
+                        {style.label}
+                      </span>
+                      <span className='inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400'>
+                        {currency}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Row actions */}
                 <div className='flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity'>
-                  <button
-                    onClick={() => openEdit(a)}
-                    className='p-1.5 rounded-md text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors'
-                    title='Edit'
-                  >
+                  <button onClick={() => openEdit(a)}
+                    className='p-1.5 rounded-md text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors' title='Edit'>
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
                     </svg>
                   </button>
-                  <button
-                    onClick={() => openDelete(a.id)}
-                    className='p-1.5 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors'
-                    title='Delete'
-                  >
+                  <button onClick={() => openDelete(a.id)}
+                    className='p-1.5 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors' title='Delete'>
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                     </svg>
@@ -254,18 +259,12 @@ export default function AccountsView() {
                   { value: 'bank',    label: 'Bank',     icon: <BankIcon /> },
                   { value: 'ewallet', label: 'E-Wallet', icon: <WalletIcon /> },
                 ].map(opt => (
-                  <button
-                    type='button'
-                    key={opt.value}
-                    onClick={() => setField('type', opt.value)}
+                  <button type='button' key={opt.value} onClick={() => setField('type', opt.value)}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${
                       form.type === opt.value
-                        ? opt.value === 'bank'
-                          ? 'bg-sky-500/20 text-sky-400'
-                          : 'bg-violet-500/20 text-violet-400'
+                        ? opt.value === 'bank' ? 'bg-sky-500/20 text-sky-400' : 'bg-violet-500/20 text-violet-400'
                         : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
+                    }`}>
                     {opt.icon} {opt.label}
                   </button>
                 ))}
@@ -275,29 +274,32 @@ export default function AccountsView() {
             {/* Name */}
             <div>
               <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>Account Name</label>
-              <input
-                className='ft-input'
-                type='text'
-                placeholder='e.g. Chase Savings, GCash…'
-                value={form.name}
-                onChange={e => setField('name', e.target.value)}
-                autoFocus
-                required
-              />
+              <input className='ft-input' type='text' placeholder='e.g. Chase Savings, GCash…'
+                value={form.name} onChange={e => setField('name', e.target.value)} autoFocus required />
+            </div>
+
+            {/* Currency */}
+            <div>
+              <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>Currency</label>
+              <select className='ft-input' value={form.currency} onChange={e => setField('currency', e.target.value)}>
+                {CURRENCIES.map(c => (
+                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Balance */}
             <div>
               <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>
-                {editId ? 'Balance (Rp)' : 'Starting Balance (Rp)'}
+                {editId ? 'Balance' : 'Starting Balance'}
               </label>
-              <input
-                className='ft-input'
-                type='number'
-                placeholder='0'
-                value={form.balance}
-                onChange={e => setField('balance', e.target.value)}
-              />
+              <div className='relative'>
+                <span className='absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium pointer-events-none'>
+                  {CURRENCIES.find(c => c.code === form.currency)?.symbol ?? form.currency}
+                </span>
+                <input className='ft-input' style={{ paddingLeft: '2.75rem' }} type='number' placeholder='0'
+                  value={form.balance} onChange={e => setField('balance', e.target.value)} />
+              </div>
             </div>
 
             {formError && (

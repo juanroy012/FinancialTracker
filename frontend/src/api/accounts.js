@@ -18,7 +18,7 @@ export async function addAccount(account) {
   const res = await fetchWithAuth(`${BASE}/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: account.type, name: account.name, balance: account.balance ?? 0, icon: account.icon ?? '' }),
+    body: JSON.stringify({ type: account.type, name: account.name, balance: account.balance ?? 0, icon: account.icon ?? '', currency: account.currency ?? 'IDR' }),
   })
   if (!res.ok) throw new Error('Failed to add account')
   return res.json()
@@ -28,7 +28,7 @@ export async function editAccount(id, account) {
   const res = await fetchWithAuth(`${BASE}/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: account.type, name: account.name, balance: account.balance ?? 0, icon: account.icon ?? '' }),
+    body: JSON.stringify({ type: account.type, name: account.name, balance: account.balance ?? 0, icon: account.icon ?? '', currency: account.currency ?? 'IDR' }),
   })
   if (!res.ok) throw new Error('Failed to edit account')
   return res.json()

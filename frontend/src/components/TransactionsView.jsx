@@ -2,6 +2,8 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { getTransactions, addTransaction, editTransaction, deleteTransaction } from '../api/transactions'
 import { getCategories } from '../api/categories'
 import { getAccounts } from '../api/accounts'
+import { CURRENCIES } from '../utils/currency'
+import { useCurrency } from '../context/CurrencyContext'
 
 const EMPTY = { type: 'expense', amount: '', date: new Date().toISOString().slice(0, 10), note: '', category_id: '', account_id: '' }
 
@@ -128,7 +130,10 @@ export default function TransactionsView() {
 
   const catName = (id) => categories.find(c => c.id === id)?.name
   const accName = (id) => accounts.find(a => a.id === id)?.name
-  const fmt = (val) => 'Rp ' + Number(val).toLocaleString('id-ID')
+  const { displayCurrency, fmt: ctxFmt } = useCurrency()
+  // Use account's own currency as fromCurrency so the context can convert to displayCurrency
+  const accCurrency = (id) => accounts.find(a => a.id === id)?.currency || displayCurrency
+  const fmt = (amount_cents, account_id) => ctxFmt(amount_cents, accCurrency(account_id))
 
   // Client-side search — matches note, category name, account name, type, date
   const searched = useMemo(() => {
@@ -269,7 +274,7 @@ export default function TransactionsView() {
                   <td className={`px-5 py-3.5 text-sm font-semibold tabular-nums ${
                     t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'
                   }`}>
-                    {t.type === 'income' ? '+' : '−'}{fmt(t.amount_cents)}
+                    {t.type === 'income' ? '+' : '−'}{fmt(t.amount_cents, t.account_id)}
                   </td>
                   <td className='px-5 py-3.5 text-sm text-slate-400'>
                     {catName(t.category_id) ?? <span className='text-slate-600 italic'>—</span>}
@@ -381,15 +386,25 @@ export default function TransactionsView() {
 
             {/* Amount */}
             <div>
-              <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>Amount (Rp)</label>
-              <input
-                className='ft-input'
-                type='number'
-                placeholder='50000'
-                value={form.amount}
-                onChange={e => setField('amount', e.target.value)}
-                required
-              />
+              <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>
+                Amount ({form.account_id ? accCurrency(parseInt(form.account_id)) : displayCurrency})
+              </label>
+              <div className='relative'>
+                <span className='absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium pointer-events-none'>
+                  {form.account_id
+                    ? (CURRENCIES.find(c => c.code === accCurrency(parseInt(form.account_id)))?.symbol ?? accCurrency(parseInt(form.account_id)))
+                    : (CURRENCIES.find(c => c.code === displayCurrency)?.symbol ?? displayCurrency)}
+                </span>
+                <input
+                  className='ft-input'
+                  style={{ paddingLeft: '2.75rem' }}
+                  type='number'
+                  placeholder='50000'
+                  value={form.amount}
+                  onChange={e => setField('amount', e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
             {/* Date */}
@@ -429,7 +444,7 @@ export default function TransactionsView() {
               >
                 <option value=''>— None —</option>
                 {accounts.map(a => (
-                  <option key={a.id} value={a.id}>{a.name} ({a.type})</option>
+                  <option key={a.id} value={a.id}>{a.name} ({a.type} · {a.currency || 'IDR'})</option>
                 ))}
               </select>
             </div>

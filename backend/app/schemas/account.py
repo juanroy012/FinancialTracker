@@ -11,9 +11,12 @@ class AccountRead(BaseModel):
     name: str
     balance: int
     icon: str = ''
+    currency: str = 'IDR'
 
 class AccountCreate(BaseModel):
     type: AccountType
     name: str
     balance: int
     icon: str = ''
+    currency: str = 'IDR'
+

@@ -5,6 +5,8 @@ import TransactionsView from './components/TransactionsView'
 import AccountsView from './components/AccountsView'
 import LoginView from './components/LoginView'
 import { logout as apiLogout } from './api/auth'
+import { CURRENCIES } from './utils/currency'
+import { useCurrency } from './context/CurrencyContext'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: (
@@ -69,6 +71,41 @@ function HamburgerIcon({ open }) {
         <path strokeLinecap='round' strokeLinejoin='round' d='M4 6h16M4 12h16M4 18h16' />
       )}
     </svg>
+  )
+}
+
+function CurrencyPicker() {
+  const { displayCurrency, changeCurrency, ratesStatus, ratesDate } = useCurrency()
+
+  const dot = ratesStatus === 'ok'
+    ? { color: '#34d399', title: `Live rates · updated ${ratesDate ?? '…'}` }
+    : ratesStatus === 'error'
+    ? { color: '#fb7185', title: 'Exchange rates unavailable — amounts shown without conversion' }
+    : { color: '#f59e0b', title: 'Loading exchange rates…' }
+
+  return (
+    <div className='flex items-center gap-1.5'>
+      <span
+        title={dot.title}
+        className='w-1.5 h-1.5 rounded-full shrink-0'
+        style={{ background: dot.color }}
+      />
+      <select
+        value={displayCurrency}
+        onChange={e => changeCurrency(e.target.value)}
+        title='Display currency'
+        className='text-xs font-semibold rounded-lg px-2 py-1.5 outline-none cursor-pointer transition-colors'
+        style={{
+          background: 'var(--bg-surface-2)',
+          color: 'var(--text-muted)',
+          border: '1px solid var(--border-hi)',
+        }}
+      >
+        {CURRENCIES.map(c => (
+          <option key={c.code} value={c.code}>{c.code}</option>
+        ))}
+      </select>
+    </div>
   )
 }
 
@@ -180,6 +217,7 @@ function App() {
               })}
             </nav>
             <div className='w-px h-5 mx-1' style={{ background: 'var(--border-hi)' }} />
+            <CurrencyPicker />
             <ThemeToggle dark={dark} toggle={toggleDark} />
             <button
               onClick={handleLogout}
@@ -237,6 +275,14 @@ function App() {
                   </a>
                 )
               })}
+              {/* Currency picker row in mobile drawer */}
+              <div className='flex items-center gap-3 px-4 py-3'>
+                <svg className='w-4 h-4 shrink-0' style={{ color: 'var(--text-muted)' }} fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                </svg>
+                <span className='text-sm font-medium' style={{ color: 'var(--text-muted)' }}>Display Currency</span>
+                <div className='ml-auto'><CurrencyPicker /></div>
+              </div>
               {/* Logout row in mobile drawer */}
               <button
                 onClick={handleLogout}
