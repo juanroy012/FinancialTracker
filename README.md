@@ -1,6 +1,6 @@
 # FinancialTracker
 
-[![Tests](https://github.com/juanroy012/FinancialTracker/actions/workflows/test.yml/badge.svg)](https://github.com/juanroy012/FinancialTracker/actions/workflows/test.yml)
+[![Tests](https://github.com/juanroy012/FinancialTracker/actions/workflows/test.yml/badge.svg)](https://github.com/juanroy012/FinancialTracker/actions/workflows/ci.yml)
 
 A self-hosted personal finance tracker for managing accounts, transactions, and categories — with per-user data isolation and JWT authentication.
 
