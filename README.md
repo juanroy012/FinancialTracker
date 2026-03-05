@@ -1,41 +1,23 @@
 # FinancialTracker
 
-A personal finance tracker for managing accounts, transactions, and categories.
+A self-hosted personal finance tracker for managing accounts, transactions, and categories — with per-user data isolation and JWT authentication.
+
 Built with **FastAPI** (Python backend) + **React + Vite** (frontend) + **SQLite**.
-Supports IDR (Indonesian Rupiah), dark / light mode, income & expense pie charts, and pagination.
+
+Live demo: **https://finance.juan-roy.com**
 
 ---
 
-## Quick Start (no coding required)
-
-### Windows
-Double-click **`start.bat`** — it will:
-1. Create a Python virtual environment
-2. Install backend & frontend dependencies
-3. Start both servers
-4. Open the app in your browser automatically
-
-### macOS / Linux
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-> **First run** takes ~1 minute while dependencies are downloaded.
-> Subsequent runs start in seconds.
-
-Once running, open **http://localhost:5173** in your browser.
-
----
-
-## What's Inside
+## Features
 
 | Section | Description |
 |---|---|
+| **Authentication** | Register / login with username & password. JWT-based sessions, per-user data isolation |
 | **Dashboard** | Monthly income vs expense donut chart, category breakdowns, balance summary |
 | **Transactions** | Add / edit / delete transactions, filter by type, search, pagination |
 | **Categories** | Manage income & expense categories with custom icons and colours |
 | **Accounts** | Track bank accounts and e-wallets with running balances |
+| **Theming** | Dark and light mode, persisted across sessions |
 
 ---
 
@@ -43,52 +25,111 @@ Once running, open **http://localhost:5173** in your browser.
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.12, FastAPI, Uvicorn, Pydantic v2, SQLite |
-| Frontend | React 19, Vite 7, Tailwind CSS v4, Recharts |
+| Backend | Python 3.12+, FastAPI ≥ 0.111, Uvicorn, Pydantic v2, SQLite (WAL mode) |
+| Auth | JWT (`python-jose`), bcrypt password hashing |
+| Frontend | React 19, Vite 7, Tailwind CSS v4, Recharts 3 |
 | Database | SQLite (`instance/app.db`) — zero setup needed |
+| Deployment | Fly.io (region: `yyz`), Docker multi-stage build |
 
 ---
 
-## Manual Setup (developers)
+## Project Structure
+
+```
+FinancialTracker/
+├── backend/
+│   ├── app/
+│   │   ├── __main__.py        # FastAPI app, CORS, startup, static file serving
+│   │   ├── auth.py            # JWT creation/verification, bcrypt helpers, get_current_user
+│   │   ├── config.py          # App configuration
+│   │   ├── db.py              # SQLite connection (WAL mode), schema + migrations
+│   │   ├── models/            # DB query helpers (account, category, transaction, user)
+│   │   ├── routes/            # API route handlers (account, category, transaction, auth)
+│   │   └── schemas/           # Pydantic request/response models
+│   ├── tests/                 # pytest test suite (accounts, categories, transactions)
+│   ├── requirements.txt       # Runtime dependencies (production)
+│   └── requirements-dev.txt   # Dev/test dependencies (pytest, httpx, Faker)
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx            # Layout, navigation, auth gate, dark/light toggle
+│   │   ├── components/        # DashboardView, TransactionsView, CategoriesView, AccountsView, LoginView
+│   │   └── api/               # Fetch wrappers (auth, accounts, categories, transactions, fetchWithAuth)
+│   ├── index.html
+│   └── package.json
+├── instance/                  # SQLite database file (auto-created, gitignored)
+├── Dockerfile                 # Multi-stage production build
+└── fly.toml                   # Fly.io deployment config
+```
+
+---
+
+## Local Development
+
+### Prerequisites
+
+- Python 3.12+
+- Node.js 20+
 
 ### Backend
+
 ```bash
+# From the project root
 cd backend
 python -m venv ../venv
-# Windows
-..\venv\Scripts\activate
-# macOS / Linux
-source ../venv/bin/activate
+source ../venv/bin/activate        # macOS / Linux
+# ..\venv\Scripts\activate         # Windows
 
 pip install -r requirements.txt
 
-# Run dev server (auto-reload)
+# Run the dev server (auto-reload) from the project root
 cd ..
 uvicorn backend.app.__main__:app --reload --port 8000
 ```
 
-API docs available at **http://localhost:8000/docs**
+API docs: **http://localhost:8000/docs**
 
 ### Frontend
+
 ```bash
 cd frontend
 npm install
-npm run dev     # dev server on http://localhost:5173
-npm run build   # production build -> frontend/dist/
+npm run dev       # dev server on http://localhost:5173
+npm run build     # production build → frontend/dist/
 ```
 
-### Seed sample data
+The frontend dev server proxies API requests to `http://localhost:8000`.
+After running `npm run build`, FastAPI automatically serves the `frontend/dist/` folder — no extra configuration needed.
+
+---
+
+## Authentication
+
+All API routes (except `/auth/token` and `/auth/register`) require a valid JWT.
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/auth/register` | POST | Create a new account `{ username, password }` |
+| `/auth/token` | POST | Login — returns `{ access_token, token_type }` |
+| `/auth/logout` | POST | Logout (invalidates session on the client) |
+
+The frontend stores the token in `localStorage` under the key `ft-token` and attaches it automatically to every API request via `fetchWithAuth.js`.
+
+---
+
+## Running Tests
+
 ```bash
 cd backend
-../venv/Scripts/python seeds.py   # Windows
-../venv/bin/python seeds.py       # macOS / Linux
+source ../venv/bin/activate
+pip install -r requirements-dev.txt   # installs pytest, httpx, Faker
+pytest tests/
 ```
 
 ---
 
 ## Docker
 
-Build and run the entire app (backend + pre-built frontend) as a single container:
+Build and run the full app (backend + pre-built frontend) as a single container:
 
 ```bash
 docker build -t financial-tracker .
@@ -100,47 +141,44 @@ Open **http://localhost:8000**
 The multi-stage Dockerfile:
 1. Builds the React app with Node 20
 2. Bundles it into a Python 3.12-slim image
-3. FastAPI serves both the API and the static frontend on port 8000
+3. FastAPI serves both the API and the static frontend on port 8080
 
 ---
 
-## Project Structure
+## Deployment (Fly.io)
 
+```bash
+fly deploy
 ```
-FinancialTracker/
-├── backend/
-│   ├── app/
-│   │   ├── __main__.py      # FastAPI app, CORS, startup
-│   │   ├── db.py            # SQLite connection, migrations
-│   │   ├── models/          # CRUD helpers
-│   │   ├── routes/          # API route handlers
-│   │   └── schemas/         # Pydantic request/response models
-│   ├── seeds.py             # Sample data loader
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx          # Layout, routing, dark/light toggle
-│   │   ├── components/      # DashboardView, TransactionsView, etc.
-│   │   └── api/             # Fetch wrappers for each resource
-│   └── package.json
-├── instance/                # SQLite database (auto-created, gitignored)
-├── Dockerfile               # Multi-stage production build
-├── start.bat                # One-click launcher (Windows)
-└── start.sh                 # One-click launcher (macOS / Linux)
-```
+
+The app is configured in `fly.toml`:
+- Region: `yyz` (Toronto)
+- Internal port: `8080`
+- Persistent volume mounted at `/data` for the SQLite database
+- Auto-stop when idle to conserve free allowance
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `SECRET_KEY` | `dev-secret-change-in-production` | JWT signing secret — **change this in production** |
+| `FT_DATA_DIR` | `<project-root>/instance` | Directory where `app.db` is stored |
+| `FT_STATIC_DIR` | `<project-root>/frontend/dist` | Directory of the pre-built React app |
+
+No `.env` file is required for local development. All defaults work out of the box.
+
+> ⚠️ Always set a strong `SECRET_KEY` in production. Anyone with this key can forge valid login tokens.
 
 ---
 
 ## Database
 
-SQLite file is created automatically at `instance/app.db` on first run.
-No installation or configuration required.
+SQLite runs in **WAL mode** for better concurrent read performance.
+The database is created automatically at `instance/app.db` on first run.
+Schema migrations are applied automatically at startup using safe `ALTER TABLE` guards — no manual migration steps needed.
 
-To reset the database, delete `instance/app.db` and restart the backend.
+Each user's data (accounts, categories, transactions) is fully isolated — a logged-in user can only see and modify their own records.
 
----
-
-## Environment
-
-No `.env` file is required for local development. All defaults work out of the box.
-
+To reset the database: delete `instance/app.db` and restart the backend.

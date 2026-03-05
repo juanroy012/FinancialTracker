@@ -41,9 +41,22 @@ def init_db():
             type TEXT NOT NULL CHECK (type IN ('ewallet', 'bank')),
             name TEXT NOT NULL,
             balance INTEGER NOT NULL
-        )
+        );
+        CREATE TABLE IF NOT EXISTS users (
+            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            hashed_password TEXT NOT NULL
+        );
         """
     )
+    # Non-breaking migration: add user_id to all three tables so data is isolated per user.
+    for table in ("categories", "transactions", "accounts"):
+        try:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN user_id INTEGER REFERENCES users(id)")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass  # column already exists
+
     # Non-breaking migration: add account_id to transactions if not already present.
     # SQLite does not support IF NOT EXISTS for ALTER TABLE, so we catch the error.
     try:

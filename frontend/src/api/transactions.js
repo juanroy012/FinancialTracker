@@ -1,13 +1,15 @@
+import fetchWithAuth from './fetchWithAuth'
+
 const BASE = `${import.meta.env.VITE_API_BASE ?? ''}/transactions`
 
 async function getTransactions() {
-    const res = await fetch(`${BASE}/`);
+    const res = await fetchWithAuth(`${BASE}/`);
     if (!res.ok) throw new Error("Failed to fetch transactions");
     return await res.json();
 }
 
 async function getTransaction(id) {
-    const res = await fetch(`${BASE}/${id}`, {
+    const res = await fetchWithAuth(`${BASE}/${id}`, {
         method: "GET"
     });
     if (!res.ok) throw new Error("Failed to fetch transaction");
@@ -15,7 +17,7 @@ async function getTransaction(id) {
 }
 
 async function addTransaction(transaction) {
-    const res = await fetch(`${BASE}/`, {
+    const res = await fetchWithAuth(`${BASE}/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -34,7 +36,7 @@ async function addTransaction(transaction) {
 }
 
 async function deleteTransaction(id) {
-    const res = await fetch(`${BASE}/${id}`, {
+    const res = await fetchWithAuth(`${BASE}/${id}`, {
         method: "DELETE"
     });
     if (!res.ok) throw new Error("Failed to delete transaction");
@@ -42,7 +44,7 @@ async function deleteTransaction(id) {
 }
 
 async function editTransaction(id, transaction) {
-    const res = await fetch(`${BASE}/${id}`, {
+    const res = await fetchWithAuth(`${BASE}/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",

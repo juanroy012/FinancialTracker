@@ -3,6 +3,8 @@ import DashboardView from './components/DashboardView'
 import CategoriesView from './components/CategoriesView'
 import TransactionsView from './components/TransactionsView'
 import AccountsView from './components/AccountsView'
+import LoginView from './components/LoginView'
+import { logout as apiLogout } from './api/auth'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Dashboard', icon: (
@@ -74,6 +76,15 @@ function App() {
   const [path, setPath] = useState(window.location.pathname)
   const [dark, setDark] = useState(() => localStorage.getItem('ft-dark') !== 'false')
   const [menuOpen, setMenuOpen] = useState(false)
+  // true when a valid token exists in localStorage
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('ft-token'))
+
+  const handleLogin = () => setIsAuthenticated(true)
+
+  const handleLogout = async () => {
+    await apiLogout()          // calls POST /auth/logout and removes the token
+    setIsAuthenticated(false)
+  }
 
   const toggleDark = () => {
     const next = !dark
@@ -113,6 +124,11 @@ function App() {
   if (path === '/categories')        View = <CategoriesView />
   else if (path === '/transactions') View = <TransactionsView />
   else if (path === '/accounts')     View = <AccountsView />
+
+  // Show the login/register screen when there's no token
+  if (!isAuthenticated) {
+    return <LoginView onLogin={handleLogin} />
+  }
 
   return (
     <div className='min-h-screen' style={{ background: 'var(--bg-app)' }}>
@@ -165,6 +181,18 @@ function App() {
             </nav>
             <div className='w-px h-5 mx-1' style={{ background: 'var(--border-hi)' }} />
             <ThemeToggle dark={dark} toggle={toggleDark} />
+            <button
+              onClick={handleLogout}
+              title='Log out'
+              className='w-8 h-8 rounded-lg flex items-center justify-center transition-colors'
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-surface-2)'; e.currentTarget.style.color = 'var(--text)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-muted)' }}
+            >
+              <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1' />
+              </svg>
+            </button>
           </div>
 
           {/* Mobile right: theme toggle + hamburger */}
@@ -209,6 +237,19 @@ function App() {
                   </a>
                 )
               })}
+              {/* Logout row in mobile drawer */}
+              <button
+                onClick={handleLogout}
+                className='flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 w-full text-left mt-1'
+                style={{ color: 'var(--text-muted)', border: '1px solid transparent' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'var(--bg-surface-2)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = '' }}
+              >
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1' />
+                </svg>
+                Log out
+              </button>
             </nav>
           </div>
         )}

@@ -1,13 +1,15 @@
+import fetchWithAuth from './fetchWithAuth'
+
 const BASE = `${import.meta.env.VITE_API_BASE ?? ''}/categories`
 
 async function getCategories() {
-    const res = await fetch(`${BASE}/`);
+    const res = await fetchWithAuth(`${BASE}/`);
     if (!res.ok) throw new Error("Failed to fetch categories");
     return await res.json()
 }
 
 async function addCategory(category) {
-    const res = await fetch(`${BASE}/`, {
+    const res = await fetchWithAuth(`${BASE}/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -19,7 +21,7 @@ async function addCategory(category) {
 }
 
 async function deleteCategory(id) {
-    const res = await fetch(`${BASE}/${id}`, {
+    const res = await fetchWithAuth(`${BASE}/${id}`, {
         method: "DELETE",
     });
     if (!res.ok) throw new Error("Failed to delete category");
@@ -27,7 +29,7 @@ async function deleteCategory(id) {
 }
 
 async function editCategory(id, category) {
-    const res = await fetch(`${BASE}/${id}`, {
+    const res = await fetchWithAuth(`${BASE}/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", },
         body: JSON.stringify({ "name": category["name"], "type": category["type"] ?? "expense", "icon": category["icon"] ?? "", "color": category["color"] ?? "amber" }),
@@ -37,4 +39,3 @@ async function editCategory(id, category) {
 }
 
 export { getCategories, addCategory, deleteCategory, editCategory }
-

@@ -2,9 +2,11 @@ from pathlib import Path
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import JSONResponse, FileResponse
-from .routes import category_router, transaction_router, account_router
+
+from .auth import get_current_user
+from .routes import category_router, transaction_router, account_router, auth_router
 from .db import init_db
 
 app = FastAPI(
@@ -37,9 +39,11 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 # Initialize database tables on startup
 init_db()
 
-app.include_router(category_router)
-app.include_router(transaction_router)
-app.include_router(account_router)
+app.include_router(auth_router)
+app.include_router(category_router, dependencies=[Depends(get_current_user)])
+app.include_router(transaction_router, dependencies=[Depends(get_current_user)])
+app.include_router(account_router, dependencies=[Depends(get_current_user)])
+
 
 # Serve the built React frontend when available (Docker / PyInstaller).
 import os as _os
