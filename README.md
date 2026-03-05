@@ -1,5 +1,7 @@
 # FinancialTracker
 
+![Tests](https://github.com/juan-roy/FinancialTracker/actions/workflows/test.yml/badge.svg)
+
 A self-hosted personal finance tracker for managing accounts, transactions, and categories — with per-user data isolation and JWT authentication.
 
 Built with **FastAPI** (Python backend) + **React + Vite** (frontend) + **SQLite**.
@@ -122,8 +124,15 @@ The frontend stores the token in `localStorage` under the key `ft-token` and att
 cd backend
 source ../venv/bin/activate
 pip install -r requirements-dev.txt   # installs pytest, httpx, Faker
-pytest tests/
+pytest tests/ -v
 ```
+
+Tests use an **in-memory SQLite database** — no external services or `.env` file needed.
+
+### CI (GitHub Actions)
+
+Tests run automatically on every push and pull request to `main` via `.github/workflows/test.yml`.
+The workflow runs on `ubuntu-latest` with Python 3.12 and caches pip dependencies for speed.
 
 ---
 

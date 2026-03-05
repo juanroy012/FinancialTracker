@@ -13,19 +13,26 @@ from backend.app.__main__ import app
 from backend.app.db import get_connection
 
 _SCHEMA = """
+CREATE TABLE IF NOT EXISTS users (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    username        TEXT NOT NULL UNIQUE,
+    hashed_password TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS categories (
     id    INTEGER PRIMARY KEY AUTOINCREMENT,
     name  TEXT NOT NULL UNIQUE,
     type  TEXT NOT NULL DEFAULT 'expense',
     icon  TEXT NOT NULL DEFAULT '',
-    color TEXT NOT NULL DEFAULT 'amber'
+    color TEXT NOT NULL DEFAULT 'amber',
+    user_id INTEGER REFERENCES users(id)
 );
 CREATE TABLE IF NOT EXISTS accounts (
     id      INTEGER PRIMARY KEY AUTOINCREMENT,
     type    TEXT NOT NULL CHECK (type IN ('ewallet', 'bank')),
     name    TEXT NOT NULL,
     balance INTEGER NOT NULL DEFAULT 0,
-    icon    TEXT NOT NULL DEFAULT ''
+    icon    TEXT NOT NULL DEFAULT '',
+    user_id INTEGER REFERENCES users(id)
 );
 CREATE TABLE IF NOT EXISTS transactions (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +41,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     date         TEXT NOT NULL,
     note         TEXT,
     category_id  INTEGER REFERENCES categories(id),
-    account_id   INTEGER REFERENCES accounts(id)
+    account_id   INTEGER REFERENCES accounts(id),
+    user_id      INTEGER REFERENCES users(id)
 );
 """
 
@@ -52,7 +60,19 @@ def client():
             pass
 
     app.dependency_overrides[get_connection] = _override
+
     with TestClient(app) as c:
+        # Register + login a test user so all protected routes work
+        c.post("/auth/register", json={"username": "testuser", "password": "testpass"})
+        resp = c.post(
+            "/auth/token",
+            data={"username": "testuser", "password": "testpass"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        token = resp.json()["access_token"]
+        # Patch the client so every request carries the Authorization header
+        c.headers.update({"Authorization": f"Bearer {token}"})
         yield c
+
     app.dependency_overrides.clear()
     conn.close()
