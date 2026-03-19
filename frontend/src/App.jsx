@@ -5,6 +5,7 @@ import TransactionsView from './components/TransactionsView'
 import AccountsView from './components/AccountsView'
 import LoginView from './components/LoginView'
 import VersionBadge from './components/VersionBadge'
+import AnimatedDropdown from './components/ui/AnimatedDropdown'
 import { logout as apiLogout } from './api/auth'
 import { CURRENCIES } from './utils/currency'
 import { useCurrency } from './context/CurrencyContext'
@@ -91,21 +92,13 @@ function CurrencyPicker() {
         className='w-1.5 h-1.5 rounded-full shrink-0'
         style={{ background: dot.color }}
       />
-      <select
+      <AnimatedDropdown
         value={displayCurrency}
-        onChange={e => changeCurrency(e.target.value)}
-        title='Display currency'
-        className='text-xs font-semibold rounded-lg px-2 py-1.5 outline-none cursor-pointer transition-colors'
-        style={{
-          background: 'var(--bg-surface-2)',
-          color: 'var(--text-muted)',
-          border: '1px solid var(--border-hi)',
-        }}
-      >
-        {CURRENCIES.map(c => (
-          <option key={c.code} value={c.code}>{c.code}</option>
-        ))}
-      </select>
+        onChange={changeCurrency}
+        options={CURRENCIES.map(c => ({ value: c.code, label: c.code }))}
+        size='sm'
+        className='w-20'
+      />
     </div>
   )
 }

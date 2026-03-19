@@ -4,6 +4,7 @@ import { getCategories } from '../api/categories'
 import { getAccounts } from '../api/accounts'
 import { CURRENCIES } from '../utils/currency'
 import { useCurrency } from '../context/CurrencyContext'
+import AnimatedDropdown from './ui/AnimatedDropdown'
 
 const EMPTY = { type: 'expense', amount: '', date: new Date().toISOString().slice(0, 10), note: '', category_id: '', account_id: '' }
 
@@ -422,31 +423,34 @@ export default function TransactionsView() {
             {/* Category */}
             <div>
               <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>Category</label>
-              <select
-                className='ft-input'
+              <AnimatedDropdown
                 value={form.category_id}
-                onChange={e => setField('category_id', e.target.value)}
-              >
-                <option value=''>— None —</option>
-                {categories.filter(c => c.type === form.type).map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+                onChange={value => setField('category_id', value)}
+                options={[
+                  { value: '', label: 'None' },
+                  ...categories
+                    .filter(c => c.type === form.type)
+                    .map(c => ({ value: String(c.id), label: c.name }))
+                ]}
+                placeholder='None'
+              />
             </div>
 
             {/* Account */}
             <div>
               <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>Account</label>
-              <select
-                className='ft-input'
+              <AnimatedDropdown
                 value={form.account_id}
-                onChange={e => setField('account_id', e.target.value)}
-              >
-                <option value=''>— None —</option>
-                {accounts.map(a => (
-                  <option key={a.id} value={a.id}>{a.name} ({a.type} · {a.currency || 'IDR'})</option>
-                ))}
-              </select>
+                onChange={value => setField('account_id', value)}
+                options={[
+                  { value: '', label: 'None' },
+                  ...accounts.map(a => ({
+                    value: String(a.id),
+                    label: `${a.name} (${a.type} · ${a.currency || 'IDR'})`,
+                  }))
+                ]}
+                placeholder='None'
+              />
             </div>
 
             {/* Note */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { login, register } from '../api/auth'
+import { login, loginAsGuest, register } from '../api/auth'
 
 // Reusable input styled with the app's CSS variables
 function AuthInput({ label, type, value, onChange, placeholder }) {
@@ -69,6 +69,21 @@ export default function LoginView({ onLogin }) {
     setError('')
     setUsername('')
     setPassword('')
+  }
+
+  const handleGuestLogin = async () => {
+    setError('')
+    setLoading(true)
+
+    try {
+      const token = await loginAsGuest()
+      localStorage.setItem('ft-token', token)
+      onLogin()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -148,6 +163,24 @@ export default function LoginView({ onLogin }) {
           >
             {loading ? 'Please wait…' : isLogin ? 'Sign in' : 'Create account'}
           </button>
+
+          {isLogin && (
+            <button
+              type='button'
+              onClick={handleGuestLogin}
+              disabled={loading}
+              className='w-full py-2.5 rounded-lg text-sm font-semibold transition-all'
+              style={{
+                background: 'var(--bg-surface-2)',
+                color: 'var(--text)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                border: '1px solid var(--border-hi)',
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? 'Please wait…' : 'Login as guest'}
+            </button>
+          )}
         </form>
 
         {/* Switch mode link */}

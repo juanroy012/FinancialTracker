@@ -6,6 +6,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.1] — 2026-03-18
+
+### Added
+- **Guest access login** via `POST /auth/guest` — creates a `guest` account on first use (if missing) and returns a standard Bearer JWT
+- **Login as guest** button in the authentication screen for quick app exploration without registration
+- **Animated dropdown component** (`AnimatedDropdown`) using `framer-motion` and `lucide-react`, then reused across the app
+
+### Changed
+- Replaced native `<select>` controls in the app with the animated dropdown style/interaction
+	- Navbar display currency picker
+	- Dashboard month selector
+	- Transactions modal category + account selectors
+	- Accounts modal currency selector
+- Category icon system migrated from emoticon values to named icon keys rendered by Lucide icons
+- Seeder category icons now use icon keys instead of emoticons
+- Global control theming improved for native elements (select/date/time/number focus and popup consistency)
+
+### Fixed
+- `admin`/`admin` login issue caused by missing seeded user in the active SQLite DB (resolved by reseeding with `backend.seed`)
+- Number input spinner controls (up/down arrows) removed from amount fields for cleaner themed inputs
+- Utilities category icon replaced with a more appropriate icon (no decorative/AI-looking utility glyph)
+
+---
+
 ## [1.1.0] — 2026-03-05
 
 ### Added

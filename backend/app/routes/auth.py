@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlite3 import Connection, IntegrityError
+from secrets import token_urlsafe
 
 from ..db import get_connection
 from ..models.user import get_user_by_username, create_user
@@ -27,6 +28,21 @@ def login(form: OAuth2PasswordRequestForm = Depends(), conn: Connection = Depend
             headers={"WWW-Authenticate": "Bearer"},
         )
     token = create_access_token({"sub": user["username"]})
+    return {"access_token": token, "token_type": "bearer"}
+
+@auth_router.post("/guest", response_model=Token)
+def login_as_guest(conn: Connection = Depends(get_connection)):
+    guest_username = "guest"
+    user = get_user_by_username(guest_username, conn)
+
+    if not user:
+        try:
+            create_user(guest_username, hash_password(token_urlsafe(24)), conn)
+        except IntegrityError:
+            # Another request may have created the guest account concurrently.
+            pass
+
+    token = create_access_token({"sub": guest_username})
     return {"access_token": token, "token_type": "bearer"}
 
 @auth_router.post("/logout", status_code=200)

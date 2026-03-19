@@ -3,6 +3,7 @@ import { getTransactions } from '../api/transactions'
 import { getCategories } from '../api/categories'
 import { getAccounts } from '../api/accounts'
 import { useCurrency } from '../context/CurrencyContext'
+import AnimatedDropdown from './ui/AnimatedDropdown'
 import {
   PieChart, Pie, Cell, Tooltip as ReTooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -199,13 +200,13 @@ export default function DashboardView() {
             {monthTxs.length} transaction{monthTxs.length !== 1 ? 's' : ''} this month
           </p>
         </div>
-        <select
-          className='ft-input w-auto'
+        <AnimatedDropdown
           value={selectedMonth}
-          onChange={e => setSelectedMonth(e.target.value)}
-        >
-          {monthOptions.map(o => <option key={o.val} value={o.val}>{o.lbl}</option>)}
-        </select>
+          onChange={setSelectedMonth}
+          options={monthOptions.map(o => ({ value: o.val, label: o.lbl }))}
+          size='sm'
+          className='w-44'
+        />
       </div>
 
       {/* Stat cards */}

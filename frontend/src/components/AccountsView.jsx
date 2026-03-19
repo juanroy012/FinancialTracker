@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { getAccounts, addAccount, editAccount, deleteAccount } from '../api/accounts'
 import { CURRENCIES, fmtCurrency } from '../utils/currency'
+import AnimatedDropdown from './ui/AnimatedDropdown'
 
 const EMPTY = { type: 'bank', name: '', balance: '', currency: 'IDR' }
 
@@ -281,11 +282,11 @@ export default function AccountsView() {
             {/* Currency */}
             <div>
               <label className='block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2'>Currency</label>
-              <select className='ft-input' value={form.currency} onChange={e => setField('currency', e.target.value)}>
-                {CURRENCIES.map(c => (
-                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
-                ))}
-              </select>
+              <AnimatedDropdown
+                value={form.currency}
+                onChange={value => setField('currency', value)}
+                options={CURRENCIES.map(c => ({ value: c.code, label: `${c.code} - ${c.name}` }))}
+              />
             </div>
 
             {/* Balance */}

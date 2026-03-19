@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getCategories, addCategory, editCategory, deleteCategory } from '../api/categories'
+import { CATEGORY_ICON_OPTIONS, renderCategoryIcon, resolveCategoryIconKey } from '../utils/categoryIcons'
 
 const CAT_COLORS = {
   amber:   { bg: 'bg-amber-500/15',   text: 'text-amber-400',   hex: '#f59e0b' },
@@ -17,12 +18,6 @@ const CAT_COLORS = {
   slate:   { bg: 'bg-slate-500/15',   text: 'text-slate-400',   hex: '#64748b' },
 }
 const COLOR_KEYS = Object.keys(CAT_COLORS)
-
-const CAT_ICONS = [
-  '🍽️','🚌','🛒','🎭','💡','📚','💊','💅','📈','📦','💼','🎁',
-  '💰','💳','🏗️','🚗','✈️','✏️','🎮','☕','🏋️','🎵','📷','🐕',
-  '🌱','⚡','🔧','💎','🛍️','🎪','🌍','💻','📱','🍕','🚀','🌺',
-]
 
 function Modal({ title, onClose, children }) {
   useEffect(() => {
@@ -72,7 +67,15 @@ export default function CategoriesView() {
   useEffect(() => { refresh() }, [])
 
   const openAdd  = () => { setName(''); setCatType('expense'); setCatIcon(''); setCatColor('amber'); setEditId(null); setFormError(''); setModal('form') }
-  const openEdit = (c) => { setName(c.name); setCatType(c.type || 'expense'); setCatIcon(c.icon || ''); setCatColor(c.color || 'amber'); setEditId(c.id); setFormError(''); setModal('form') }
+  const openEdit = (c) => {
+    setName(c.name)
+    setCatType(c.type || 'expense')
+    setCatIcon(resolveCategoryIconKey(c.icon || ''))
+    setCatColor(c.color || 'amber')
+    setEditId(c.id)
+    setFormError('')
+    setModal('form')
+  }
   const openDelete = (id) => { setDeleteId(id); setModal('delete') }
   const closeModal = () => { setModal(null); setDeleteId(null); setSaving(false) }
 
@@ -154,10 +157,8 @@ export default function CategoriesView() {
                     >
                       <div className='flex items-center gap-4'>
                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${cs.bg}`}>
-                          {c.icon
-                            ? <span className='text-xl leading-none'>{c.icon}</span>
-                            : <span className={`font-bold text-lg ${cs.text}`}>{c.name.charAt(0).toUpperCase()}</span>
-                          }
+                          {renderCategoryIcon(c.icon, `w-5 h-5 ${cs.text}`)
+                            || <span className={`font-bold text-lg ${cs.text}`}>{c.name.charAt(0).toUpperCase()}</span>}
                         </div>
                         <div>
                           <p className='text-sm font-semibold text-slate-100'>{c.name}</p>
@@ -238,12 +239,13 @@ export default function CategoriesView() {
                   }`}>
                   A
                 </button>
-                {CAT_ICONS.map((emoji, i) => (
-                  <button type='button' key={i} onClick={() => setCatIcon(emoji)}
-                    className={`h-8 rounded text-lg leading-none transition-all ${
-                      catIcon === emoji ? 'bg-amber-500/20 ring-1 ring-amber-500 scale-110' : 'hover:bg-slate-800'
+                {CATEGORY_ICON_OPTIONS.map(({ key, label, Icon }) => (
+                  <button type='button' key={key} onClick={() => setCatIcon(key)}
+                    title={label}
+                    className={`h-8 rounded flex items-center justify-center transition-all ${
+                      catIcon === key ? 'bg-amber-500/20 ring-1 ring-amber-500 scale-110 text-amber-400' : 'hover:bg-slate-800 text-slate-300'
                     }`}>
-                    {emoji}
+                    <Icon className='w-4 h-4' strokeWidth={2} />
                   </button>
                 ))}
               </div>

@@ -64,20 +64,20 @@ def _seed_categories(conn: sqlite3.Connection, user_id: int) -> dict:
     """Insert categories and return { name: id }."""
     cats = [
         # income
-        ("Salary",       "income",  "💼", "emerald"),
-        ("Freelance",    "income",  "💻", "cyan"),
-        ("Investment",   "income",  "📈", "sky"),
-        ("Bonus",        "income",  "🎁", "violet"),
+        ("Salary",       "income",  "briefcase", "emerald"),
+        ("Freelance",    "income",  "wallet", "cyan"),
+        ("Investment",   "income",  "investment", "sky"),
+        ("Bonus",        "income",  "gift", "violet"),
         # expense
-        ("Food",         "expense", "🍜", "amber"),
-        ("Transport",    "expense", "🚗", "orange"),
-        ("Rent",         "expense", "🏠", "rose"),
-        ("Utilities",    "expense", "💡", "yellow"),
-        ("Health",       "expense", "💊", "pink"),
-        ("Shopping",     "expense", "🛍️",  "purple"),
-        ("Entertainment","expense", "🎮", "indigo"),
-        ("Education",    "expense", "📚", "blue"),
-        ("Savings",      "expense", "🏦", "teal"),
+        ("Food",         "expense", "utensils", "amber"),
+        ("Transport",    "expense", "car", "orange"),
+        ("Rent",         "expense", "house", "rose"),
+        ("Utilities",    "expense", "receipt", "yellow"),
+        ("Health",       "expense", "health", "pink"),
+        ("Shopping",     "expense", "shopping",  "purple"),
+        ("Entertainment","expense", "sparkles", "indigo"),
+        ("Education",    "expense", "graduation", "blue"),
+        ("Savings",      "expense", "piggybank", "teal"),
     ]
     result = {}
     for name, ctype, icon, color in cats:
@@ -276,7 +276,7 @@ def main():
         for r in rows:
             print(f"    {r['name']:20s}  {r['currency']}  {r['balance']:>15,}")
 
-        print("\n  ✅  Seeding complete!")
+        print("\n  Seeding complete!")
         print("     Login with  username: admin  /  password: admin")
     finally:
         conn.close()

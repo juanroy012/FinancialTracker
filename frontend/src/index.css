@@ -71,6 +71,82 @@ html.light .hover\:bg-slate-800:hover { background-color: #e2e8f0 !important; }
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Native form controls themed to match app palette */
+  input,
+  select,
+  textarea,
+  button {
+    color: var(--text);
+  }
+
+  select,
+  input[type='date'],
+  input[type='datetime-local'],
+  input[type='time'] {
+    color-scheme: dark;
+  }
+
+  html.light select,
+  html.light input[type='date'],
+  html.light input[type='datetime-local'],
+  html.light input[type='time'] {
+    color-scheme: light;
+  }
+
+  select,
+  .ft-input[type='number'],
+  input.ft-input[type='number'] {
+    border-color: var(--border-hi);
+  }
+
+  /* Custom dropdown arrow while keeping native behavior */
+  select,
+  select.ft-input {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+      linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+    background-position:
+      calc(100% - 1rem) calc(50% - 1px),
+      calc(100% - 0.7rem) calc(50% - 1px);
+    background-size: 0.38rem 0.38rem, 0.38rem 0.38rem;
+    background-repeat: no-repeat;
+  }
+
+  select:hover,
+  select.ft-input:hover {
+    background-color: var(--bg-hover);
+  }
+
+  select:focus,
+  select.ft-input:focus,
+  input[type='number'].ft-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  /* Dropdown option list colors (browser support varies) */
+  option,
+  optgroup {
+    background-color: var(--bg-surface);
+    color: var(--text);
+  }
+
+  /* Number spinner arrows */
+  input[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
 }
 
 /* Reusable input style */
