@@ -1,10 +1,29 @@
 import React, { useState } from 'react'
-import { CURRENCIES } from '../utils/currency'
-
-// Version is pulled from package.json at build time via Vite's import.meta.env
-const VERSION = __APP_VERSION__
 
 const CHANGELOG = [
+  {
+    version: '1.2.0',
+    date: '2026-03-20',
+    entries: [
+      { type: 'added',   text: 'Public seeded preview mode — app opens with data without mandatory login' },
+      { type: 'added',   text: 'Automatic public seed bootstrap with richer transaction history (~18 months)' },
+      { type: 'changed', text: 'Default seeded/account currency switched to CAD with Canadian account presets' },
+      { type: 'changed', text: 'Authentication flow updated — optional login from top-right for personal persistence' },
+      { type: 'removed', text: 'Removed Login as guest shortcut from the auth screen' },
+      { type: 'removed', text: 'Removed user-facing demo terminology from preview messaging and seeded labels' },
+    ],
+  },
+  {
+    version: '1.1.1',
+    date: '2026-03-18',
+    entries: [
+      { type: 'added',   text: 'Guest access login endpoint and Login as guest entry point' },
+      { type: 'added',   text: 'Animated dropdown control reused across dashboard and forms' },
+      { type: 'changed', text: 'Native select elements replaced with animated dropdown interactions' },
+      { type: 'fixed',   text: 'Seed/login mismatch causing admin account access issues in active DB' },
+      { type: 'fixed',   text: 'Themed number input cleanup and category icon consistency improvements' },
+    ],
+  },
   {
     version: '1.1.0',
     date: '2026-03-05',
@@ -39,6 +58,9 @@ const CHANGELOG = [
     ],
   },
 ]
+
+// Always show the newest release from the on-page changelog as current.
+const VERSION = CHANGELOG[0]?.version ?? __APP_VERSION__
 
 const TYPE_STYLES = {
   added:   { dot: 'bg-emerald-400', label: 'Added',   text: 'text-emerald-400' },

@@ -18,7 +18,7 @@ const CAT_COLORS = [
 function StatCard({ label, value, sub, color, icon }) {
   return (
     <div className='ft-card p-6 flex items-start gap-4'>
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
         {icon}
       </div>
       <div>
@@ -99,7 +99,7 @@ export default function DashboardView() {
   const accountTotals = useMemo(() => {
     const map = {}
     accounts.forEach(a => {
-      const c = a.currency || 'IDR'
+      const c = a.currency || 'CAD'
       map[c] = (map[c] || 0) + a.balance
     })
     return Object.entries(map).sort((x, y) => x[0].localeCompare(y[0]))
@@ -243,7 +243,7 @@ export default function DashboardView() {
           <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
             {accountTotals.map(([currency, total]) => (
               <div key={currency} className='flex flex-col gap-0.5'>
-                <p className='text-xs text-slate-500'>{currency} · {accounts.filter(a => (a.currency || 'IDR') === currency).length} account{accounts.filter(a => (a.currency || 'IDR') === currency).length !== 1 ? 's' : ''}</p>
+                <p className='text-xs text-slate-500'>{currency} · {accounts.filter(a => (a.currency || 'CAD') === currency).length} account{accounts.filter(a => (a.currency || 'CAD') === currency).length !== 1 ? 's' : ''}</p>
                 <p className={`text-base font-bold tabular-nums ${
                   total > 0 ? 'text-emerald-400' : total < 0 ? 'text-rose-400' : 'text-slate-400'
                 }`}>
@@ -348,7 +348,7 @@ export default function DashboardView() {
                 </div>
                 <div className='text-right shrink-0 ml-4'>
                   <p className={`text-sm font-semibold tabular-nums ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {t.type === 'income' ? '+' : '−'}{fmt(t.amount_cents, accounts.find(a => a.id === t.account_id)?.currency || 'IDR')}
+                    {t.type === 'income' ? '+' : '−'}{fmt(t.amount_cents, accounts.find(a => a.id === t.account_id)?.currency || 'CAD')}
                   </p>
                   <p className='text-xs text-slate-500'>{t.date}</p>
                 </div>

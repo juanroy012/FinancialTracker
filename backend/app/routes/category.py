@@ -3,12 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..db import get_connection
 from ..models.category import get_all_categories, create_category, delete_category, update_category
 from ..schemas.category import CategoryRead, CategoryCreate
-from ..auth import get_current_user
+from ..auth import get_current_user, get_request_user
 
 category_router = APIRouter(prefix="/categories", tags=["Category"])
 
 @category_router.get("/", response_model=list[CategoryRead])
-def category_list(conn: Connection = Depends(get_connection), current_user=Depends(get_current_user)):
+def category_list(conn: Connection = Depends(get_connection), current_user=Depends(get_request_user)):
     return get_all_categories(current_user["id"], conn)
 
 @category_router.post("/", response_model=CategoryRead)

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { login, loginAsGuest, register } from '../api/auth'
+import { login, register } from '../api/auth'
 
 // Reusable input styled with the app's CSS variables
 function AuthInput({ label, type, value, onChange, placeholder }) {
@@ -28,7 +28,7 @@ function AuthInput({ label, type, value, onChange, placeholder }) {
   )
 }
 
-export default function LoginView({ onLogin }) {
+export default function LoginView({ onLogin, onClose }) {
   const [mode, setMode]         = useState('login')   // 'login' | 'register'
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -71,21 +71,6 @@ export default function LoginView({ onLogin }) {
     setPassword('')
   }
 
-  const handleGuestLogin = async () => {
-    setError('')
-    setLoading(true)
-
-    try {
-      const token = await loginAsGuest()
-      localStorage.setItem('ft-token', token)
-      onLogin()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div
       className='min-h-screen flex items-center justify-center px-4'
@@ -100,6 +85,21 @@ export default function LoginView({ onLogin }) {
       >
         {/* Logo + title */}
         <div className='flex flex-col items-center gap-3'>
+          {onClose && (
+            <button
+              type='button'
+              onClick={onClose}
+              className='self-end -mt-2 -mr-2 w-8 h-8 rounded-lg flex items-center justify-center transition-colors'
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-surface-2)'; e.currentTarget.style.color = 'var(--text)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-muted)' }}
+              title='Close'
+            >
+              <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
+              </svg>
+            </button>
+          )}
           <div
             className='w-12 h-12 rounded-xl flex items-center justify-center'
             style={{ background: 'var(--accent)' }}
@@ -164,23 +164,6 @@ export default function LoginView({ onLogin }) {
             {loading ? 'Please wait…' : isLogin ? 'Sign in' : 'Create account'}
           </button>
 
-          {isLogin && (
-            <button
-              type='button'
-              onClick={handleGuestLogin}
-              disabled={loading}
-              className='w-full py-2.5 rounded-lg text-sm font-semibold transition-all'
-              style={{
-                background: 'var(--bg-surface-2)',
-                color: 'var(--text)',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                border: '1px solid var(--border-hi)',
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading ? 'Please wait…' : 'Login as guest'}
-            </button>
-          )}
         </form>
 
         {/* Switch mode link */}

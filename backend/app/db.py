@@ -18,6 +18,7 @@ def get_connection() -> Generator[sqlite3.Connection, None, None]:
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     conn.executescript(
         """
         CREATE TABLE IF NOT EXISTS categories (
@@ -56,7 +57,7 @@ def init_db():
         ("categories",   "icon TEXT NOT NULL DEFAULT ''"),
         ("categories",   "color TEXT NOT NULL DEFAULT 'amber'"),
         ("accounts",     "icon TEXT NOT NULL DEFAULT ''"),
-        ("accounts",     "currency TEXT NOT NULL DEFAULT 'IDR'"),
+        ("accounts",     "currency TEXT NOT NULL DEFAULT 'CAD'"),
     ]
     for table, column_def in migrations:
         try:

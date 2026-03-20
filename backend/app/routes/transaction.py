@@ -6,19 +6,19 @@ from ..models.transaction import (
     delete_transaction, update_transaction
 )
 from ..schemas.transaction import TransactionRead, TransactionCreate
-from ..auth import get_current_user
+from ..auth import get_current_user, get_request_user
 
 transaction_router = APIRouter(prefix="/transactions", tags=["Transaction"])
 
 @transaction_router.get("/", response_model=list[TransactionRead])
-def transaction_list(conn: Connection = Depends(get_connection), current_user=Depends(get_current_user)):
+def transaction_list(conn: Connection = Depends(get_connection), current_user=Depends(get_request_user)):
     return get_all_transactions(current_user["id"], conn)
 
 @transaction_router.get("/{transaction_name}", response_model=list[TransactionRead])
 def transaction_details(
     transaction_name: str,
     conn: Connection = Depends(get_connection),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_request_user)
     ) -> list[TransactionRead] | None:
     transaction = get_transactions_by_name(transaction_name, current_user["id"], conn)
     if transaction is None:

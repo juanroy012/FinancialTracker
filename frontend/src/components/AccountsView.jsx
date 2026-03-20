@@ -3,7 +3,7 @@ import { getAccounts, addAccount, editAccount, deleteAccount } from '../api/acco
 import { CURRENCIES, fmtCurrency } from '../utils/currency'
 import AnimatedDropdown from './ui/AnimatedDropdown'
 
-const EMPTY = { type: 'bank', name: '', balance: '', currency: 'IDR' }
+const EMPTY = { type: 'bank', name: '', balance: '', currency: 'CAD' }
 
 const TYPE_STYLES = {
   bank:    { ring: 'bg-sky-500/15 text-sky-400',       label: 'Bank' },
@@ -86,7 +86,7 @@ export default function AccountsView() {
     return accounts.filter(a =>
       a.name.toLowerCase().includes(q) ||
       a.type.toLowerCase().includes(q) ||
-      (a.currency ?? 'IDR').toLowerCase().includes(q)
+      (a.currency ?? 'CAD').toLowerCase().includes(q)
     )
   }, [accounts, search])
 
@@ -94,14 +94,14 @@ export default function AccountsView() {
   const totals = useMemo(() => {
     const map = {}
     accounts.forEach(a => {
-      const c = a.currency || 'IDR'
+      const c = a.currency || 'CAD'
       map[c] = (map[c] || 0) + a.balance
     })
     return Object.entries(map).sort((x, y) => x[0].localeCompare(y[0]))
   }, [accounts])
 
   const openAdd    = () => { setForm(EMPTY); setEditId(null); setFormError(''); setModal('form') }
-  const openEdit   = (a) => { setForm({ type: a.type, name: a.name, balance: a.balance.toString(), currency: a.currency || 'IDR' }); setEditId(a.id); setFormError(''); setModal('form') }
+  const openEdit   = (a) => { setForm({ type: a.type, name: a.name, balance: a.balance.toString(), currency: a.currency || 'CAD' }); setEditId(a.id); setFormError(''); setModal('form') }
   const openDelete = (id) => { setDeleteId(id); setModal('delete') }
   const closeModal = () => { setModal(null); setDeleteId(null); setSaving(false) }
   const setField   = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -206,7 +206,7 @@ export default function AccountsView() {
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
           {filtered.map(a => {
             const style = TYPE_STYLES[a.type] ?? TYPE_STYLES.bank
-            const currency = a.currency || 'IDR'
+            const currency = a.currency || 'CAD'
             return (
               <div key={a.id}
                 className='ft-card p-5 flex items-center justify-between group hover:border-slate-700 transition-colors'>

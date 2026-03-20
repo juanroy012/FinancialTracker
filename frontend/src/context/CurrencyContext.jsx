@@ -7,7 +7,7 @@ const STORAGE_KEY = 'ft-display-currency'
 
 export function CurrencyProvider({ children }) {
   const [displayCurrency, setDisplayCurrency] = useState(
-    () => localStorage.getItem(STORAGE_KEY) || 'IDR'
+    () => localStorage.getItem(STORAGE_KEY) || 'CAD'
   )
   const [rates, setRates]             = useState(null)
   const [ratesStatus, setRatesStatus] = useState('loading')
@@ -16,7 +16,7 @@ export function CurrencyProvider({ children }) {
   useEffect(() => {
     let cancelled = false
     setRatesStatus('loading')
-    fetchRates('IDR')
+    fetchRates('CAD')
       .then(data => {
         if (cancelled) return
         setRates(data.rates)
@@ -36,12 +36,12 @@ export function CurrencyProvider({ children }) {
   }, [])
 
   const convert = useCallback(
-    (amount, fromCurrency = 'IDR') => convertAmount(amount, fromCurrency, displayCurrency, rates),
+    (amount, fromCurrency = 'CAD') => convertAmount(amount, fromCurrency, displayCurrency, rates),
     [displayCurrency, rates]
   )
 
   const fmt = useCallback(
-    (amount, fromCurrency = 'IDR') => fmtCurrency(convert(amount, fromCurrency), displayCurrency),
+    (amount, fromCurrency = 'CAD') => fmtCurrency(convert(amount, fromCurrency), displayCurrency),
     [convert, displayCurrency]
   )
 

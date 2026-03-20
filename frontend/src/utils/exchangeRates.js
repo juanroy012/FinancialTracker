@@ -2,7 +2,7 @@ const CACHE_KEY  = 'ft-exchange-rates'
 const CACHE_META = 'ft-exchange-rates-meta'
 const TTL_MS     = 60 * 60 * 1000
 
-export async function fetchRates(base = 'IDR') {
+export async function fetchRates(base = 'CAD') {
   try {
     const meta = JSON.parse(localStorage.getItem(CACHE_META) || '{}')
     if (meta.base === base && meta.ts && (Date.now() - meta.ts) < TTL_MS) {

@@ -7,20 +7,20 @@ from ..models.account import (
     delete_account, update_account
 )
 from ..schemas.account import AccountRead, AccountCreate
-from ..auth import get_current_user
+from ..auth import get_current_user, get_request_user
 
 account_router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
 
 @account_router.get("/", response_model=List[AccountRead])
-def account_list(conn: Connection = Depends(get_connection), current_user=Depends(get_current_user)):
+def account_list(conn: Connection = Depends(get_connection), current_user=Depends(get_request_user)):
     return get_all_accounts(current_user["id"], conn)
 
 @account_router.get("/{account_name}", response_model=List[AccountRead])
 def account_details(
     account_name: str,
     conn: Connection = Depends(get_connection),
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_request_user),
     ) -> list[AccountRead] | None:
     return get_accounts_by_name(account_name, current_user["id"], conn)
 

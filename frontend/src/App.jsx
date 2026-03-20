@@ -107,10 +107,14 @@ function App() {
   const [path, setPath] = useState(window.location.pathname)
   const [dark, setDark] = useState(() => localStorage.getItem('ft-dark') !== 'false')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
   // true when a valid token exists in localStorage
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('ft-token'))
 
-  const handleLogin = () => setIsAuthenticated(true)
+  const handleLogin = () => {
+    setIsAuthenticated(true)
+    setShowLogin(false)
+  }
 
   const handleLogout = async () => {
     await apiLogout()          // calls POST /auth/logout and removes the token
@@ -156,11 +160,6 @@ function App() {
   else if (path === '/transactions') View = <TransactionsView />
   else if (path === '/accounts')     View = <AccountsView />
 
-  // Show the login/register screen when there's no token
-  if (!isAuthenticated) {
-    return <LoginView onLogin={handleLogin} />
-  }
-
   return (
     <div className='min-h-screen' style={{ background: 'var(--bg-app)' }}>
       <header className='sticky top-0 z-40' style={{
@@ -170,7 +169,7 @@ function App() {
         <div className='max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between'>
           {/* Logo */}
           <div className='flex items-center gap-2.5'>
-            <div className='w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0' style={{ background: 'var(--accent)' }}>
+            <div className='w-8 h-8 rounded-lg flex items-center justify-center shrink-0' style={{ background: 'var(--accent)' }}>
               <svg className='w-4 h-4' style={{ color: 'white' }} fill='currentColor' viewBox='0 0 20 20'>
                 <path d='M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z' />
                 <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z' clipRule='evenodd' />
@@ -213,18 +212,32 @@ function App() {
             <div className='w-px h-5 mx-1' style={{ background: 'var(--border-hi)' }} />
             <CurrencyPicker />
             <ThemeToggle dark={dark} toggle={toggleDark} />
-            <button
-              onClick={handleLogout}
-              title='Log out'
-              className='w-8 h-8 rounded-lg flex items-center justify-center transition-colors'
-              style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-surface-2)'; e.currentTarget.style.color = 'var(--text)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-muted)' }}
-            >
-              <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1' />
-              </svg>
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                title='Log out'
+                className='w-8 h-8 rounded-lg flex items-center justify-center transition-colors'
+                style={{ color: 'var(--text-muted)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-surface-2)'; e.currentTarget.style.color = 'var(--text)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-muted)' }}
+              >
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1' />
+                </svg>
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowLogin(true)}
+                className='px-3 py-1.5 rounded-lg text-sm font-medium transition-colors'
+                style={{
+                  background: 'var(--bg-surface-2)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border-hi)',
+                }}
+              >
+                Login
+              </button>
+            )}
           </div>
 
           {/* Mobile right: theme toggle + hamburger */}
@@ -277,19 +290,33 @@ function App() {
                 <span className='text-sm font-medium' style={{ color: 'var(--text-muted)' }}>Display Currency</span>
                 <div className='ml-auto'><CurrencyPicker /></div>
               </div>
-              {/* Logout row in mobile drawer */}
-              <button
-                onClick={handleLogout}
-                className='flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 w-full text-left mt-1'
-                style={{ color: 'var(--text-muted)', border: '1px solid transparent' }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'var(--bg-surface-2)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = '' }}
-              >
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1' />
-                </svg>
-                Log out
-              </button>
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  className='flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 w-full text-left mt-1'
+                  style={{ color: 'var(--text-muted)', border: '1px solid transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'var(--bg-surface-2)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = '' }}
+                >
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' d='M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1' />
+                  </svg>
+                  Log out
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setShowLogin(true); setMenuOpen(false) }}
+                  className='flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 w-full text-left mt-1'
+                  style={{ color: 'var(--text-muted)', border: '1px solid transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'var(--bg-surface-2)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = '' }}
+                >
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' d='M10 17l5-5-5-5M15 12H3' />
+                  </svg>
+                  Login
+                </button>
+              )}
             </nav>
           </div>
         )}
@@ -304,6 +331,18 @@ function App() {
       )}
 
       <main className='max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10'>
+        {!isAuthenticated && (
+          <div
+            className='mb-4 rounded-lg px-4 py-3 text-sm'
+            style={{
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-muted)',
+            }}
+          >
+            Preview mode: you are viewing seeded public data. Login to save your own changes.
+          </div>
+        )}
         {View}
       </main>
 
@@ -314,6 +353,12 @@ function App() {
         </span>
         <VersionBadge />
       </footer>
+
+      {showLogin && (
+        <div className='fixed inset-0 z-50'>
+          <LoginView onLogin={handleLogin} onClose={() => setShowLogin(false)} />
+        </div>
+      )}
     </div>
   )
 }

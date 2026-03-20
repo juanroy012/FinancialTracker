@@ -6,6 +6,25 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.0] — 2026-03-20
+
+### Added
+- **Public seeded preview mode** — visitors can open the app and immediately see preloaded financial data without creating an account
+- **Automatic public seed profile bootstrap** at startup, with realistic account/category/transaction data when the public profile is empty or too small
+- **Long-form realistic seed history** — seeded records now cover roughly 18 months with recurring payroll, rent, utilities, groceries, transport, shopping, entertainment, health, insurance, savings, freelance, bonus, and investment activity
+
+### Changed
+- **Authentication UX flow** — the app no longer hard-gates on login; users can browse seeded data first, then optionally sign in from a top-right Login action to persist personal data
+- **Default seeded currency moved to CAD** — seeded bank/wallet profiles and transaction amounts now default to Canadian financial conventions
+- Seeder account presets migrated to Canadian institutions (`RBC Chequing`, `TD Savings`, `Scotiabank Visa`, `Wealthsimple Cash`)
+- Public seeded profile naming cleaned up to remove `demo` terminology in user-facing text
+
+### Removed
+- `Login as guest` action from the authentication view
+- Dependence on a dedicated guest login flow for first-time exploration
+
+---
+
 ## [1.1.1] — 2026-03-18
 
 ### Added

@@ -20,18 +20,6 @@ export async function login(username, password) {
   return data.access_token
 }
 
-// Requests a guest token so users can try the app without creating an account.
-export async function loginAsGuest() {
-  const res = await fetch(`${BASE}/guest`, {
-    method: 'POST',
-  })
-
-  if (!res.ok) throw new Error('Guest login failed')
-
-  const data = await res.json()
-  return data.access_token
-}
-
 // Registers a new account. Returns the created user object.
 export async function register(username, password) {
   const res = await fetch(`${BASE}/register`, {
