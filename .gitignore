@@ -43,8 +43,6 @@ node_modules/
 # Fly.io
 .fly/
 
-# Seeder (local dev only — contains hardcoded credentials)
-backend/seed.py
 
 CODING_INSTRUCTIONS.md
 

@@ -1,17 +1,7 @@
 """
 Seeder script — populates the database with realistic financial history for the
-'admin' account (username: admin, password: admin).
+public account
 
-Run from the project root:
-    source venv/bin/activate
-    python -m backend.seed
-
-The script is idempotent: running it more than once will skip the admin user
-creation if the account already exists, and will NOT duplicate categories,
-accounts, or transactions (it clears the user's existing data first and
-re-seeds cleanly).
-
-This file is listed in .gitignore and is NOT committed to the repository.
 """
 
 import sqlite3
@@ -62,7 +52,7 @@ def _ensure_public_seed_data(conn: sqlite3.Connection) -> None:
         "SELECT COUNT(*) AS c FROM transactions WHERE user_id = ?",
         (user_id,),
     ).fetchone()["c"]
-    if existing >= 300:
+    if existing >= 420:
         return
 
     conn.execute("DELETE FROM transactions WHERE user_id = ?", (user_id,))
@@ -433,6 +423,68 @@ def _seed_transactions(
             current = current.replace(year=current.year + 1, month=1)
         else:
             current = current.replace(month=current.month + 1)
+
+    # ── April 2026 (explicit) ────────────────────────────────────────────────
+    apr = date(2026, 4, 1)
+    already_has_apr = conn.execute(
+        "SELECT COUNT(*) FROM transactions WHERE user_id=? AND date >= '2026-04-01' AND date <= '2026-04-30'",
+        (user_id,),
+    ).fetchone()[0]
+    if not already_has_apr:
+        add(apr.replace(day=1),  "expense", 2_100,  "Rent",          rbc_id,    "Rent payment")
+        add(apr.replace(day=4),  "expense",   230,  "Utilities",     rbc_id,    "Hydro and internet")
+        add(apr.replace(day=5),  "expense",    38,  "Transport",     koho_id,   "Transit pass")
+        add(apr.replace(day=7),  "expense",   140,  "Food",          koho_id,   "Groceries")
+        add(apr.replace(day=9),  "expense",    62,  "Food",          ws_cash_id,"Dinner out")
+        add(apr.replace(day=11), "expense",   310,  "Shopping",      td_id,     "Retail purchase")
+        add(apr.replace(day=13), "expense",    28,  "Transport",     koho_id,   "Transit and rides")
+        add(apr.replace(day=14), "expense",   140,  "Food",          koho_id,   "Groceries")
+        add(apr.replace(day=15), "income",    480,  "Investment",    rbc_id,    "Quarterly dividend")
+        add(apr.replace(day=16), "expense",    75,  "Entertainment", ws_cash_id,"Streaming and events")
+        add(apr.replace(day=17), "expense",   155,  "Health",        rbc_id,    "Gym and pharmacy")
+        add(apr.replace(day=18), "expense",    45,  "Food",          ws_cash_id,"Lunch out")
+        add(apr.replace(day=19), "expense",    32,  "Transport",     koho_id,   "Transit and rides")
+        add(apr.replace(day=21), "expense",   140,  "Food",          koho_id,   "Groceries")
+        add(apr.replace(day=22), "expense",   420,  "Shopping",      td_id,     "Retail purchase")
+        add(apr.replace(day=23), "expense",    55,  "Food",          ws_cash_id,"Restaurants")
+        add(apr.replace(day=24), "expense",    41,  "Transport",     koho_id,   "Transit and rides")
+        add(apr.replace(day=25), "income",  5_650,  "Salary",        rbc_id,    "Payroll deposit")
+        add(apr.replace(day=25), "expense",   200,  "Education",     rbc_id,    "Course fee")
+        add(apr.replace(day=26), "expense", 1_200,  "Savings",       td_id,     "Savings contribution")
+        add(apr.replace(day=27), "income",  1_850,  "Freelance",     rbc_id,    "Client contract payout")
+        add(apr.replace(day=28), "expense",   140,  "Food",          koho_id,   "Groceries")
+        add(apr.replace(day=28), "income",    130,  "Salary",        usd_id,    "USD deposit")
+        add(apr.replace(day=29), "expense",    58,  "Food",          ws_cash_id,"Dinner out")
+
+    # ── May 2026 (explicit, up to ~25th) ────────────────────────────────────
+    may = date(2026, 5, 1)
+    already_has_may = conn.execute(
+        "SELECT COUNT(*) FROM transactions WHERE user_id=? AND date >= '2026-05-01' AND date <= '2026-05-31'",
+        (user_id,),
+    ).fetchone()[0]
+    if not already_has_may:
+        add(may.replace(day=1),  "expense", 2_100,  "Rent",          rbc_id,    "Rent payment")
+        add(may.replace(day=3),  "expense",   195,  "Utilities",     rbc_id,    "Hydro and internet")
+        add(may.replace(day=5),  "expense",    35,  "Transport",     koho_id,   "Transit and rides")
+        add(may.replace(day=7),  "expense",   155,  "Food",          koho_id,   "Groceries")
+        add(may.replace(day=8),  "expense",    68,  "Food",          ws_cash_id,"Restaurants")
+        add(may.replace(day=9),  "expense",   270,  "Shopping",      td_id,     "Retail purchase")
+        add(may.replace(day=10), "expense",    42,  "Transport",     koho_id,   "Transit and rides")
+        add(may.replace(day=12), "expense",    90,  "Health",        rbc_id,    "Pharmacy")
+        add(may.replace(day=14), "expense",   155,  "Food",          koho_id,   "Groceries")
+        add(may.replace(day=15), "expense",    55,  "Food",          ws_cash_id,"Lunch out")
+        add(may.replace(day=16), "income",  1_400,  "Freelance",     rbc_id,    "Client contract payout")
+        add(may.replace(day=17), "expense",    38,  "Transport",     koho_id,   "Transit and rides")
+        add(may.replace(day=18), "expense",   180,  "Entertainment", ws_cash_id,"Streaming and events")
+        add(may.replace(day=19), "expense",   490,  "Shopping",      td_id,     "Retail purchase")
+        add(may.replace(day=20), "expense",    72,  "Food",          ws_cash_id,"Dinner out")
+        add(may.replace(day=21), "expense",   155,  "Food",          koho_id,   "Groceries")
+        add(may.replace(day=22), "expense",    30,  "Transport",     koho_id,   "Transit and rides")
+        add(may.replace(day=23), "expense",   340,  "Education",     rbc_id,    "Course fee")
+        add(may.replace(day=24), "expense",    50,  "Food",          ws_cash_id,"Lunch out")
+        add(may.replace(day=25), "income",  5_900,  "Salary",        rbc_id,    "Payroll deposit")
+        add(may.replace(day=25), "expense", 1_500,  "Savings",       td_id,     "Savings contribution")
+        add(may.replace(day=25), "income",    150,  "Salary",        usd_id,    "USD deposit")
 
     conn.commit()
     total = conn.execute(
